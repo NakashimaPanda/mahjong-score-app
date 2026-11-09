@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<!-- Mahjong Score App Version 1.0.0 / © 2026 NakashimaPanda -->
+<!-- Mahjong Tournament Manager Version 1.0.0 / © 2026 NakashimaPanda -->
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>麻雀成績アプリ</title>
+<title>麻雀大会マネージャー</title>
 <style>
 *{box-sizing:border-box}
 body{font-family:'Hiragino Sans','Meiryo','Segoe UI',sans-serif;margin:0;background:#f1f5f9;color:#1e293b}
@@ -143,10 +143,73 @@ body[data-theme="dark"] .name-drag{background:#1e293b;border-color:#64748b;color
 .score-row.drag-over-row{outline:2px solid #2563eb;outline-offset:-2px;background:#dbeafe}
 body[data-theme="dark"] .score-row.drag-over-row{background:#1e3a5f}
 #btnBackToTop:hover{background:#166534}
+/* --- 時間設定：デザイナー案（タイトルなし） --- */
+#view-time input,#view-time select{width:auto}
+#view-time .time-summary{background:#14532d;color:#fff;border-radius:12px;padding:14px 18px;font-size:16px;font-weight:800;line-height:1.6;margin-bottom:16px;position:sticky;top:64px;z-index:15;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+#view-time .time-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media(max-width:860px){#view-time .time-layout{grid-template-columns:1fr}#view-time .time-right{position:static!important}}
+#view-time .time-right{position:sticky;top:124px}
+#view-time .time-block{margin-bottom:16px}
+#view-time .time-inline{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+#view-time .time-inline .field{min-width:0}
+#view-time .field label{margin-top:0}
+#tDate{width:11em;max-width:100%}
+#tStart,#tEndTime,#tLunchTarget{width:10.5em;max-width:100%}
+#tHanchan,#tInterval,#tLunchMin,#tCountSelect{width:7em;max-width:100%}
+#view-time .segment{display:flex;gap:4px;background:#e2e8f0;border-radius:999px;padding:4px;margin-bottom:14px}
+#view-time .seg-btn{flex:1 1 0;border:none;background:transparent;color:#334155;border-radius:999px;padding:10px 8px;font-size:14px;font-weight:800;cursor:pointer}
+#view-time .seg-btn.active{background:#14532d;color:#fff}
+#view-time .mode-flow{display:flex;gap:14px;flex-wrap:wrap;align-items:stretch}
+#view-time .mode-arrow{align-self:center;font-size:20px;font-weight:800;color:#64748b}
+#view-time .result-panel{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;padding:10px 16px;min-width:9em;display:flex;flex-direction:column;justify-content:center}
+#view-time .result-label{font-size:12px;font-weight:700;color:#475569}
+#view-time .result-value{font-size:30px;font-weight:900;line-height:1.2;color:#14532d;font-variant-numeric:tabular-nums}
+#view-time .rhythm{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:14px}
+#view-time .pill{background:#dcfce7;border:1px solid #86efac;color:#14532d;border-radius:999px;padding:6px 11px;font-size:13px;font-weight:800;white-space:nowrap}
+#view-time .pill.break{background:#fff;border:1.5px dashed #94a3b8;color:#475569}
+#view-time .rhythm-arrow{color:#94a3b8;font-weight:800}
+#view-time .switch-row{display:flex;align-items:center;gap:12px;font-weight:800;font-size:15px}
+#view-time .switch{position:relative;display:inline-block;width:52px;height:28px;flex:0 0 auto}
+#view-time .switch input{opacity:0;width:0;height:0;position:absolute}
+#view-time .slider{position:absolute;inset:0;background:#cbd5e1;border-radius:999px;transition:.2s;cursor:pointer}
+#view-time .slider::before{content:'';position:absolute;width:22px;height:22px;left:3px;top:3px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+#view-time .switch input:checked + .slider{background:#16a34a}
+#view-time .switch input:checked + .slider::before{transform:translateX(24px)}
+#view-time .switch input:focus-visible + .slider{outline:2px solid #2563eb;outline-offset:2px}
+.lunch-target-wrap{position:relative}
+#lunchBalloon{position:absolute;left:0;bottom:calc(100% + 10px);background:#14532d;color:#fff;font-size:14px;font-weight:700;line-height:1.5;padding:10px 14px;border-radius:10px;box-shadow:0 4px 16px rgba(0,0,0,.3);white-space:nowrap;max-width:92vw;opacity:0;pointer-events:none;transition:opacity .5s ease;z-index:40}
+#lunchBalloon.show{opacity:1}
+#lunchBalloon::after{content:'';position:absolute;top:100%;left:28px;border:8px solid transparent;border-top-color:#14532d}
+#view-time .timeline{display:flex;flex-direction:column;gap:8px}
+#view-time .tl-item{padding:10px 12px;border:1.5px solid #cbd5e1;border-radius:10px;background:#fff;font-size:14px;line-height:1.5}
+#view-time .tl-item.lunch{background:#fef3c7;border-color:#d97706}
+#view-time .tl-item.lunch[draggable="true"]{cursor:grab}
+#view-time .tl-item.lunch[draggable="true"]:active{cursor:grabbing}
+#view-time .tl-item.dragging{opacity:.45}
+#view-time .tl-item.drag-over{outline:2px solid #d97706;outline-offset:2px;background:#fef3c7}
+#view-time .tl-drag-handle{color:#b45309;font-size:15px;line-height:1;margin-right:6px}
+#view-time .lunch-drag-hint{font-size:12px;color:#64748b;margin-top:8px;line-height:1.5}
+#view-time .tl-time{font-weight:800;font-variant-numeric:tabular-nums}
+#view-time .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+#view-time .chip{background:#e0e7ff;color:#1e3a5f;border-radius:999px;padding:5px 11px;font-size:13px;font-weight:800}
+body[data-theme="dark"] #view-time .segment{background:#334155}
+body[data-theme="dark"] #view-time .seg-btn{color:#cbd5e1}
+body[data-theme="dark"] #view-time .seg-btn.active{background:#22c55e;color:#052e16}
+body[data-theme="dark"] #view-time .result-panel{background:#0f172a;border-color:#475569}
+body[data-theme="dark"] #view-time .result-label{color:#94a3b8}
+body[data-theme="dark"] #view-time .result-value{color:#4ade80}
+body[data-theme="dark"] #view-time .pill{background:#14532d;border-color:#166534;color:#dcfce7}
+body[data-theme="dark"] #view-time .pill.break{background:#1e293b;border-color:#64748b;color:#cbd5e1}
+body[data-theme="dark"] #view-time .tl-item{background:#1e293b;border-color:#475569;color:#e2e8f0}
+body[data-theme="dark"] #view-time .tl-item.lunch{background:#451a03;color:#fde68a;border-color:#d97706}
+body[data-theme="dark"] #view-time .tl-item.drag-over{background:#451a03}
+body[data-theme="dark"] #view-time .lunch-drag-hint{color:#94a3b8}
+body[data-theme="dark"] #view-time .chip{background:#334155;color:#e2e8f0}
+body[data-theme="dark"] #view-time .time-summary{background:#052e16}
 </style>
 </head>
 <body>
-<header><div class="header-top"><div><h1 id="appTitle" data-i18n="appTitle">🀄 麻雀成績アプリ</h1><p data-i18n="appSubtitle">オフラインで使えます。入力内容はこの端末のブラウザに自動保存されます。</p></div><div class="top-controls"><label style="margin:0;color:#fff;font-size:13px"><span data-i18n="langLabel">言語</span> <select id="langSelect" aria-label="Language"><option value="ja">日本語</option><option value="en">English</option></select></label><button type="button" class="theme-btn" id="themeToggle">🌙 ダークモード</button></div></div></header>
+<header><div class="header-top"><div><h1 id="appTitle" data-i18n="appTitle">🀄 麻雀大会マネージャー</h1><p data-i18n="appSubtitle">オフラインで使えます。入力内容はこの端末のブラウザに自動保存されます。</p></div><div class="top-controls"><label style="margin:0;color:#fff;font-size:13px"><span data-i18n="langLabel">言語</span> <select id="langSelect" aria-label="Language"><option value="ja">日本語</option><option value="en">English</option></select></label><button type="button" class="theme-btn" id="themeToggle">🌙 ダークモード</button></div></div></header>
 <nav>
 <button data-nav="score" data-i18n="navScore">点数入力</button>
 <button data-nav="members" data-i18n="navMembers">メンバー登録</button>
@@ -238,24 +301,53 @@ body[data-theme="dark"] .score-row.drag-over-row{background:#1e3a5f}
 
 <!-- 時間設定 -->
 <section id="view-time" class="view">
-  <div class="card">
-    <h2 data-i18n="timeTitle">時間設定</h2>
-    <label data-i18n="labelDate">開催日</label><input type="date" id="tDate">
-    <div class="row">
-      <div><label data-i18n="labelStart">開始時刻</label><input type="time" id="tStart"></div>
-      <div><label data-i18n="labelEnd">終了時刻</label><input type="time" id="tEnd"></div>
+  <div id="timeSummaryBar" class="time-summary" role="status"></div>
+  <div class="time-layout">
+    <div class="time-left">
+      <div class="card time-block">
+        <div class="time-inline">
+          <div class="field"><label data-i18n="labelDate">開催日</label><input type="date" id="tDate"></div>
+          <div class="field"><label data-i18n="labelStart">開始時刻</label><input type="time" id="tStart" step="300"></div>
+        </div>
+      </div>
+      <div class="card time-block">
+        <div class="segment" role="group" aria-label="Mode">
+          <button type="button" class="seg-btn" id="segByCount" data-mode="count" data-i18n="segByCount">半荘数で決める</button>
+          <button type="button" class="seg-btn active" id="segByEnd" data-mode="end" data-i18n="segByEnd">終了時刻で決める</button>
+        </div>
+        <div class="mode-flow">
+          <div class="field"><label id="tInputLabel" for="tEndTime">終了時刻</label><select id="tCountSelect" style="display:none"><option value=""></option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option><option value="8">8</option><option value="9">9</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option></select><input type="time" id="tEndTime" step="300"></div>
+          <div class="mode-arrow" aria-hidden="true">→</div>
+          <div class="result-panel"><div class="result-label" id="tResultLabel">半荘数</div><div class="result-value" id="tResultValue"></div></div>
+        </div>
+      </div>
+      <div class="card time-block">
+        <div class="time-inline">
+          <div class="field"><label data-i18n="labelHanchanMin">1半荘の時間（分）※運営上の目安</label><select id="tHanchan"><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option></select></div>
+          <div class="field"><label data-i18n="labelInterval">インターバル（分）</label><select id="tInterval"><option value="0">0</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option></select></div>
+        </div>
+        <div class="rhythm" id="tRhythm"></div>
+      </div>
+      <div class="card time-block">
+        <div class="switch-row"><label class="switch"><input type="checkbox" id="tHasLunch" checked><span class="slider"></span></label><span data-i18n="labelHasLunch">お昼休憩を入れる</span></div>
+        <div class="time-inline" style="margin-top:14px">
+          <div class="field lunch-target-wrap"><label data-i18n="labelLunchTarget">お昼休憩の開始目安時刻</label><input type="time" id="tLunchTarget" step="300"><div id="lunchBalloon" role="status" aria-live="polite"></div></div>
+          <div class="field"><label data-i18n="labelLunchMin">お昼休憩の時間（分）</label><select id="tLunchMin"><option value="0">0</option><option value="5">5</option><option value="10">10</option><option value="15">15</option><option value="20">20</option><option value="25">25</option><option value="30">30</option><option value="35">35</option><option value="40">40</option><option value="45">45</option><option value="50">50</option><option value="55">55</option><option value="60">60</option><option value="65">65</option><option value="70">70</option><option value="75">75</option><option value="80">80</option></select></div>
+        </div>
+        <p class="note" data-i18n="timeNote">半荘と半荘の間にはインターバルが入ります（お昼休憩が入る区切りでは、お昼休憩がインターバルを兼ねます）。お昼休憩は、開始目安時刻に最も近い半荘の区切りから、設定した時間だけ入れます。半荘の時間は目安なので、当日の進行が多少ずれてもかまいません。</p>
+      </div>
+      <div style="margin-top:2px">
+        <button class="btn green" id="btnSaveTime" data-i18n="btnSave">保存してメイン画面に戻る</button>
+        <button class="btn gray" data-back data-i18n="btnBack">メイン画面に戻る</button>
+      </div>
     </div>
-    <label data-i18n="labelHanchanMin">1半荘の時間（分）※運営上の目安</label><input type="number" id="tHanchan" min="10" step="5">
-    <label style="font-weight:700"><input type="checkbox" id="tHasLunch"> <span data-i18n="labelHasLunch">お昼休憩を入れる</span></label>
-    <div class="row">
-      <div><label data-i18n="labelLunchTarget">お昼休憩の開始目安時刻</label><input type="time" id="tLunchTarget"></div>
-      <div><label data-i18n="labelLunchMin">お昼休憩の時間（分）</label><input type="number" id="tLunchMin" min="0" step="5"></div>
-    </div>
-    <p class="note" data-i18n="timeNote">お昼休憩は、開始目安時刻に最も近い半荘の区切りから、設定した時間だけ入れます。半荘の時間は目安なので、当日の進行が多少ずれてもかまいません。</p>
-    <div id="timePreview" class="kv"></div>
-    <div style="margin-top:14px">
-      <button class="btn green" id="btnSaveTime" data-i18n="btnSave">保存してメイン画面に戻る</button>
-      <button class="btn gray" data-back data-i18n="btnBack">メイン画面に戻る</button>
+    <div class="time-right">
+      <div class="card time-block">
+        <div id="timeTimeline" class="timeline"></div>
+        <div id="timeLunchHint" class="lunch-drag-hint" data-i18n="lunchDragHint" style="display:none">お昼休憩のタイルはドラッグで位置を変えられます</div>
+        <div id="timeChips" class="chips"></div>
+        <div id="timePreview" class="kv" style="display:none"></div>
+      </div>
     </div>
   </div>
 </section>
@@ -294,7 +386,7 @@ body[data-theme="dark"] .score-row.drag-over-row{background:#1e3a5f}
 <input type="file" id="fileImportTxt" accept=".txt,text/plain" style="display:none" aria-hidden="true">
 </main>
 <button type="button" id="btnBackToTop" data-i18n="backToTop" aria-label="Back to top">↑ 先頭に戻る</button>
-<footer data-i18n="footerText">麻雀成績アプリ ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.0.0</footer>
+<footer data-i18n="footerText">麻雀大会マネージャー ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.0.0</footer>
 <script>
 'use strict';
 var LS_KEY='mahjong-score-app-v1';
@@ -305,7 +397,7 @@ function todayStr(){var d=new Date();return d.getFullYear()+'-'+String(d.getMont
 function defaultState(){
   return {
     members:['','','','','','','',''].map(function(n,i){return {id:'m'+(i+1),name:n};}),
-    time:{date:todayStr(),start:'10:00',end:'17:30',hanchanMin:50,hasLunch:true,lunchTarget:'12:30',lunchMin:60},
+    time:{date:todayStr(),start:'10:00',end:'17:30',hanchanMin:50,intervalMin:10,mode:'end',hanchanCount:null,hasLunch:true,lunchTarget:'12:30',lunchMin:60,lunchAfter:null},
     tableSet:{startPoints:25000,returnPoints:30000,umaLow:5,umaHigh:10,roundMode:'gosha'},
     schedule:[], matchups:[], results:{}
   };
@@ -313,6 +405,8 @@ function defaultState(){
 var state=defaultState();
 try{var saved=localStorage.getItem(LS_KEY);if(saved){var p=JSON.parse(saved);if(p&&p.members)state=p;}}catch(e){}
 if(state.tableSet&&!state.tableSet.roundMode)state.tableSet.roundMode='gosha';
+// 旧データ（インターバル／半荘数モードが無い保存データ）の読み替え
+if(state.time){if(state.time.intervalMin==null)state.time.intervalMin=10;if(!state.time.mode)state.time.mode='end';if(state.time.hanchanCount===undefined)state.time.hanchanCount=null;if(state.time.lunchAfter===undefined)state.time.lunchAfter=null;}
 function save(){try{localStorage.setItem(LS_KEY,JSON.stringify(state));}catch(e){}}
 function memberName(id){for(var i=0;i<state.members.length;i++){if(state.members[i].id===id)return state.members[i].name||(typeof unnamedLabel==='function'?unnamedLabel():'（無名）');}return '?';}
 function validMembers(){return state.members.filter(function(m){return (m.name||'').trim()!=='';});}
@@ -323,31 +417,68 @@ function minToTime(m){m=((m%1440)+1440)%1440;return String(Math.floor(m/60)).pad
 </script>
 <script>
 'use strict';
-function buildSchedule(){
+function buildSchedule(noLunch){
   var t=state.time;
-  var start=timeToMin(t.start), end=timeToMin(t.end), dur=parseInt(t.hanchanMin,10)||50;
-  if(end<=start||dur<=0) return [];
-  // 休憩を入れる半荘数（休憩前）を、目安時刻に最も近い区切りから決める
+  var start=timeToMin(t.start), dur=parseInt(t.hanchanMin,10)||50;
+  var interval=(t.intervalMin==null||t.intervalMin==='')?10:(parseInt(t.intervalMin,10)||0);
+  var lunchMin=parseInt(t.lunchMin,10)||0;
+  var countMode=(t.mode==='count');
+  var end=timeToMin(t.end);
+  if(dur<=0) return [];
+  // 半荘数の上限を決める（終了時刻モードは昼休憩なしで数えた数、半荘数モードは指定回数）
+  var total=0;
+  if(countMode){
+    total=parseInt(t.hanchanCount,10)||0;
+    if(total<1) return [];
+  }else{
+    if(end<=start) return [];
+    var cur0=start;
+    while(cur0+dur<=end){total++; cur0+=dur+interval;}
+    if(total<1) return [];
+  }
+  // 休憩を入れる位置（休憩前の半荘数）を、目安時刻に最も近い区切りから決める（従来の方式を継承）。
+  // 区切りはインターバル込み：k半荘目の終わり ＝ 開始 ＋ k×半荘時間 ＋ (k-1)×インターバル。
+  // 最終半荘の後には休憩を入れない。
   var lunchAfter=-1;
-  if(t.hasLunch && (parseInt(t.lunchMin,10)||0)>0){
+  var manualAfter=(t.lunchAfter==null?null:parseInt(t.lunchAfter,10));
+  var hasManual=!noLunch && t.hasLunch && lunchMin>0 && total>=2 && manualAfter!=null && !isNaN(manualAfter) && manualAfter>=1 && manualAfter<total;
+  if(hasManual){
+    lunchAfter=manualAfter;
+  }else if(!noLunch && t.hasLunch && lunchMin>0 && total>=2){
     var target=timeToMin(t.lunchTarget), bestDiff=1e9;
-    for(var k=1;;k++){
-      var boundary=start+k*dur;
-      if(boundary>=end) break;
+    for(var k=1;k<total;k++){
+      var boundary=start+k*dur+(k-1)*interval;
+      if(!countMode && boundary>=end) break;
       var d=Math.abs(boundary-target);
       if(d<bestDiff){bestDiff=d;lunchAfter=k;}
     }
   }
-  var slots=[], cur=start, idx=1, lunchDone=false;
-  while(cur+dur<=end){
-    slots.push({index:idx,start:minToTime(cur),end:minToTime(cur+dur)});
-    cur+=dur; idx++;
-    if(lunchAfter===slots.length && !lunchDone){
-      slots.push({lunch:true,start:minToTime(cur),end:minToTime(cur+(parseInt(t.lunchMin,10)||0))});
-      cur+=parseInt(t.lunchMin,10)||0; lunchDone=true;
+  // 半荘を並べる。半荘間の空きはインターバル。ただし昼休憩が入る区切りでは
+  // 昼休憩がインターバルを兼ねる（インターバルは足さない）。
+  var slots=[], cur=start, done=0, lunchDone=false;
+  while(done<total){
+    if(!countMode && cur+dur>end) break;
+    slots.push({index:done+1,start:minToTime(cur),end:minToTime(cur+dur)});
+    cur+=dur; done++;
+    if(done>=total) break;
+    if(lunchAfter===done && !lunchDone){
+      slots.push({lunch:true,start:minToTime(cur),end:minToTime(cur+lunchMin)});
+      cur+=lunchMin; lunchDone=true;
+    }else{
+      cur+=interval;
     }
   }
+  // 終了時刻モードで、昼休憩の後に半荘が1つも入らなくなった場合は、昼休憩なしで組み直す
+  if(slots.length && slots[slots.length-1].lunch) return buildSchedule(true);
   return slots;
+}
+function decidedLunchStart(slots){
+  for(var i=0;i<slots.length;i++){if(slots[i].lunch)return slots[i].start;}
+  return null;
+}
+function lastGameEnd(slots){
+  for(var i=slots.length-1;i>=0;i--){if(!slots[i].lunch)return slots[i].end;}
+  return null;
 }
 function hanchanSlots(){return state.schedule.filter(function(s){return !s.lunch;});}
 function tablesPerRound(){
@@ -591,7 +722,27 @@ function getComputed(r,t){
 </script>
 <script>
 'use strict';
+function confirmUnsavedMove(){
+  return confirm((typeof currentLang!=='undefined'&&currentLang==='en')?'You have unsaved changes. Move anyway?':'\u4FDD\u5B58\u3055\u308C\u3066\u3044\u306A\u3044\u5909\u66F4\u304C\u3042\u308A\u307E\u3059\u3002\u3053\u306E\u307E\u307E\u79FB\u52D5\u3057\u307E\u3059\u304B\uFF1F');
+}
+function hasUnsavedChanges(view){
+  try{
+    if(view==='time')return (typeof isTimeDirty==='function')?isTimeDirty():false;
+    if(view==='tableset')return (typeof isTableDirty==='function')?isTableDirty():false;
+    if(view==='score')return (typeof isScoreDirty==='function')?isScoreDirty():false;
+  }catch(e){return false;}
+  return false;
+}
 function show(view,scoreMode){
+  var _act=document.querySelector('.view.active');
+  var _cur=_act?_act.id.replace('view-',''):'main';
+  var _isScoreReset=(view==='score'&&_cur==='score'&&(scoreMode==='reset'||scoreMode==='blank'));
+  if(view!==_cur||_isScoreReset){
+    if(hasUnsavedChanges(_cur)){
+      if(!confirmUnsavedMove())return;
+      if(_cur==='score'&&typeof discardScoreDraft==='function')discardScoreDraft();
+    }
+  }
   if(typeof hideScoreToast==='function')hideScoreToast();
   document.querySelectorAll('.view').forEach(function(el){el.classList.remove('active');});
   var el=document.getElementById('view-'+view); if(el)el.classList.add('active');
@@ -798,50 +949,332 @@ document.getElementById('btnSaveMembers').addEventListener('click',function(){
   save(); show('main');
 });
 // ---- 時間設定 ----
+var timeDraft=null;
+var lunchAfterEdit=(state.time&&state.time.lunchAfter!=null)?state.time.lunchAfter:null;
+function setManualLunchAfter(k,totalGames){
+  var n=parseInt(k,10);
+  if(isNaN(n)||n<1)return false;
+  if(totalGames!=null&&n>=totalGames)return false;
+  lunchAfterEdit=n;
+  captureTimeDraft();
+  refreshTimeResult(false);
+  updateTimePreview();
+  return true;
+}
+function bindTimelineDrag(totalGames){
+  var tl=document.getElementById('timeTimeline'); if(!tl)return;
+  var lunchTile=tl.querySelector('[data-lunch-tile]'); if(!lunchTile)return;
+  lunchTile.addEventListener('dragstart',function(e){lunchTile.classList.add('dragging');try{e.dataTransfer.setData('text/plain',lunchTile.getAttribute('data-lunch-after')||'');e.dataTransfer.effectAllowed='move';}catch(err){}});
+  lunchTile.addEventListener('dragend',function(){lunchTile.classList.remove('dragging');tl.querySelectorAll('.tl-item').forEach(function(x){x.classList.remove('drag-over');});});
+  tl.querySelectorAll('[data-drop-target]').forEach(function(tile){
+    tile.addEventListener('dragover',function(e){e.preventDefault();try{e.dataTransfer.dropEffect='move';}catch(err){} tile.classList.add('drag-over');});
+    tile.addEventListener('dragleave',function(){tile.classList.remove('drag-over');});
+    tile.addEventListener('drop',function(e){e.preventDefault();tile.classList.remove('drag-over');var k=parseInt(tile.getAttribute('data-drop-target'),10);setManualLunchAfter(k,totalGames);});
+  });
+}
+function nearestOption(v,min,max,step){
+  var n=parseInt(v,10); if(isNaN(n)) n=min;
+  n=Math.max(min,Math.min(max,n));
+  var r=min+Math.round((n-min)/step)*step;
+  return Math.max(min,Math.min(max,r));
+}
+function clampHanchan(v){return nearestOption(v==null?50:v,30,60,5);}
+function clampInterval(v){return nearestOption(v==null?10:v,0,30,5);}
+function clampLunchMin(v){return nearestOption(v==null?60:v,0,80,5);}
+function normalizedTime(src){
+  var t=Object.assign({},src||{});
+  if(!t.mode)t.mode='end';
+  if(t.intervalMin==null)t.intervalMin=10;
+  if(t.hanchanCount===undefined)t.hanchanCount=null;
+  t.hanchanMin=clampHanchan(t.hanchanMin);
+  t.intervalMin=clampInterval(t.intervalMin);
+  t.lunchMin=clampLunchMin(t.lunchMin);
+  if(t.lunchAfter===undefined||t.lunchAfter===null){t.lunchAfter=null;}else{var laN=parseInt(t.lunchAfter,10);t.lunchAfter=isNaN(laN)?null:laN;}
+  return t;
+}
+function currentTimeMode(){
+  var a=document.querySelector('#view-time .seg-btn.active');
+  if(a)return a.getAttribute('data-mode')||'end';
+  if(timeDraft&&timeDraft.mode)return timeDraft.mode;
+  return (state.time&&state.time.mode)||'end';
+}
+function getModeInputValue(){
+  if(currentTimeMode()==='count'){
+    var sel=document.getElementById('tCountSelect'); return sel?sel.value:'';
+  }
+  var inp=document.getElementById('tEndTime'); return inp?inp.value:'';
+}
+function setModeInputValue(v){
+  if(currentTimeMode()==='count'){
+    var sel=document.getElementById('tCountSelect'); if(sel)sel.value=(v==null?'':String(v));
+  }else{
+    var inp=document.getElementById('tEndTime'); if(inp)inp.value=v||'';
+  }
+}
+function setTimeMode(mode){
+  document.querySelectorAll('#view-time .seg-btn').forEach(function(b){b.classList.toggle('active',b.getAttribute('data-mode')===mode);b.setAttribute('aria-pressed',b.getAttribute('data-mode')===mode?'true':'false');});
+  updateModeUI();
+}
+function updateModeUI(){
+  var mode=currentTimeMode();
+  var isCount=(mode==='count');
+  var sel=document.getElementById('tCountSelect'); var inp=document.getElementById('tEndTime');
+  if(sel)sel.style.display=isCount?'':'none';
+  if(inp)inp.style.display=isCount?'none':'';
+  var lab=document.getElementById('tInputLabel');
+  if(lab){lab.textContent=isCount?t('labelModeCount'):t('labelEnd'); lab.setAttribute('for',isCount?'tCountSelect':'tEndTime');}
+  document.getElementById('tResultLabel').textContent=isCount?t('labelEnd'):t('labelModeCount');
+}
+function captureTimeDraft(){
+  var mode=currentTimeMode();
+  timeDraft={
+    date:document.getElementById('tDate').value||todayStr(),
+    start:document.getElementById('tStart').value||'10:00',
+    mode:mode,
+    modeValue:getModeInputValue(),
+    end:mode==='end'?(getModeInputValue()||'17:30'):(state.time?state.time.end:'17:30'),
+    hanchanCount:mode==='count'?(parseInt(getModeInputValue(),10)||null):null,
+    hanchanMin:clampHanchan(document.getElementById('tHanchan').value),
+    intervalMin:clampInterval(document.getElementById('tInterval').value),
+    hasLunch:document.getElementById('tHasLunch').checked,
+    lunchTarget:document.getElementById('tLunchTarget').value||'12:30',
+    lunchMin:clampLunchMin(document.getElementById('tLunchMin').value),
+    lunchAfter:lunchAfterEdit
+  };
+  return timeDraft;
+}
+function canonicalTimeSaved(){
+  var t=normalizedTime(state.time);
+  var mode=t.mode||'end';
+  return {date:t.date||todayStr(),start:t.start||'10:00',mode:mode,end:mode==='count'?null:(t.end||'17:30'),hanchanCount:mode==='count'?(t.hanchanCount==null?null:(parseInt(t.hanchanCount,10)||null)):null,hanchanMin:t.hanchanMin,intervalMin:t.intervalMin,hasLunch:!!t.hasLunch,lunchTarget:t.lunchTarget||'12:30',lunchMin:t.lunchMin,lunchAfter:(t.lunchAfter==null?null:t.lunchAfter)};
+}
+function canonicalTimeDraft(){
+  var d=timeDraft; if(!d)return null;
+  var mode=d.mode||'end';
+  var mv=(d.modeValue!==undefined&&d.modeValue!==null)?String(d.modeValue):null;
+  var endVal=null,countVal=null;
+  if(mode==='count'){countVal=(mv!==null?(mv===''?null:(parseInt(mv,10)||null)):(d.hanchanCount==null?null:(parseInt(d.hanchanCount,10)||null)));}
+  else{endVal=(mv!==null?(mv||'17:30'):(d.end||'17:30'));}
+  var norm=normalizedTime({date:d.date,start:d.start,mode:mode,end:endVal||'17:30',hanchanCount:countVal,hanchanMin:d.hanchanMin,intervalMin:d.intervalMin,hasLunch:d.hasLunch,lunchTarget:d.lunchTarget,lunchMin:d.lunchMin,lunchAfter:(d.lunchAfter==null?null:d.lunchAfter)});
+  return {date:norm.date||todayStr(),start:norm.start||'10:00',mode:mode,end:mode==='count'?null:(endVal||'17:30'),hanchanCount:mode==='count'?countVal:null,hanchanMin:norm.hanchanMin,intervalMin:norm.intervalMin,hasLunch:!!norm.hasLunch,lunchTarget:norm.lunchTarget||'12:30',lunchMin:norm.lunchMin,lunchAfter:(norm.lunchAfter==null?null:norm.lunchAfter)};
+}
+function isTimeDirty(){
+  if(!timeDraft)return false;
+  try{return JSON.stringify(canonicalTimeDraft())!==JSON.stringify(canonicalTimeSaved());}catch(e){return true;}
+}
+function draftFromForm(form){
+  return {date:form.date,start:form.start,mode:form.mode,modeValue:(form.mode==='count'?(form.hanchanCount==null?'':String(form.hanchanCount)):(form.end||'')),end:form.end,hanchanCount:form.hanchanCount,hanchanMin:form.hanchanMin,intervalMin:form.intervalMin,hasLunch:form.hasLunch,lunchTarget:form.lunchTarget,lunchMin:form.lunchMin,lunchAfter:(form.lunchAfter==null?null:form.lunchAfter)};
+}
 function renderTime(){
-  var t=state.time;
-  document.getElementById('tDate').value=t.date||todayStr();
-  document.getElementById('tStart').value=t.start;
-  document.getElementById('tEnd').value=t.end;
-  document.getElementById('tHanchan').value=t.hanchanMin;
-  document.getElementById('tHasLunch').checked=!!t.hasLunch;
-  document.getElementById('tLunchTarget').value=t.lunchTarget;
-  document.getElementById('tLunchMin').value=t.lunchMin;
+  var src=timeDraft?normalizedTime(Object.assign({},timeDraft,{hanchanMin:timeDraft.hanchanMin,intervalMin:timeDraft.intervalMin,lunchMin:timeDraft.lunchMin})):normalizedTime(state.time);
+  // draft may carry modeValue explicitly
+  document.getElementById('tDate').value=src.date||todayStr();
+  document.getElementById('tStart').value=src.start||'10:00';
+  setTimeMode(src.mode||'end');
+  if(timeDraft&&timeDraft.modeValue!==undefined&&timeDraft.modeValue!==null){setModeInputValue(timeDraft.modeValue);}
+  else if(src.mode==='count'){setModeInputValue(src.hanchanCount==null?'':src.hanchanCount);}
+  else{setModeInputValue(src.end||'');}
+  document.getElementById('tHanchan').value=String(clampHanchan(src.hanchanMin));
+  document.getElementById('tInterval').value=String(clampInterval(src.intervalMin));
+  document.getElementById('tHasLunch').checked=!!src.hasLunch;
+  document.getElementById('tLunchTarget').value=src.lunchTarget||'12:30';
+  document.getElementById('tLunchMin').value=String(clampLunchMin(src.lunchMin));
+  lunchAfterEdit=(src.lunchAfter==null?null:src.lunchAfter);
+  refreshTimeResult(false);
   updateTimePreview();
 }
 function readTimeForm(){
-  return {date:document.getElementById('tDate').value||todayStr(),
+  var mode=currentTimeMode();
+  var mv=getModeInputValue();
+  var form={date:document.getElementById('tDate').value||todayStr(),
     start:document.getElementById('tStart').value||'10:00',
-    end:document.getElementById('tEnd').value||'17:30',
-    hanchanMin:parseInt(document.getElementById('tHanchan').value,10)||50,
+    end:'17:30',
+    hanchanMin:clampHanchan(document.getElementById('tHanchan').value),
+    intervalMin:clampInterval(document.getElementById('tInterval').value),
+    mode:mode,
+    hanchanCount:null,
     hasLunch:document.getElementById('tHasLunch').checked,
     lunchTarget:document.getElementById('tLunchTarget').value||'12:30',
-    lunchMin:parseInt(document.getElementById('tLunchMin').value,10)||0};
+    lunchMin:clampLunchMin(document.getElementById('tLunchMin').value),
+    lunchAfter:lunchAfterEdit};
+  if(mode==='count'){form.hanchanCount=mv===''?0:(parseInt(mv,10)||0);form.end='23:59';}
+  else{form.end=mv||'17:30';}
+  var keep=state.time; state.time=form;
+  var slots=buildSchedule(); state.time=keep;
+  var games=slots.filter(function(s){return !s.lunch;});
+  if(mode==='count'){var le=lastGameEnd(slots); if(le)form.end=le;}
+  else{form.hanchanCount=games.length;}
+  form._slots=slots;
+  return form;
+}
+function weekdayLabel(dateStr){
+  var wdJa=['日','月','火','水','木','金','土']; var wdEn=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var d=null;
+  if(dateStr){var a=dateStr.split('-'); if(a.length===3)d=new Date(parseInt(a[0],10),parseInt(a[1],10)-1,parseInt(a[2],10));}
+  if(!d||isNaN(d.getTime()))d=new Date();
+  return currentLang==='en'?wdEn[d.getDay()]:wdJa[d.getDay()];
+}
+function renderTimeChrome(form,slots){
+  var games=slots.filter(function(s){return !s.lunch;});
+  var lunchSlot=null; slots.forEach(function(s){if(s.lunch)lunchSlot=s;});
+  var endT=lastGameEnd(slots)||form.end||'';
+  var bar=document.getElementById('timeSummaryBar');
+  if(bar){
+    var md=''; if(form.date){var pa=form.date.split('-'); if(pa.length===3)md=parseInt(pa[1],10)+'/'+parseInt(pa[2],10); else md=form.date;}
+    var wd=weekdayLabel(form.date);
+    if(currentLang==='en'){
+      bar.textContent=md+' ('+wd+') '+form.start+' - '+endT+' \u2022 '+games.length+' games'+(lunchSlot?(' \u2022 Break '+lunchSlot.start+'-'+lunchSlot.end):'');
+      if(!slots.length)bar.textContent=md+' ('+wd+') '+form.start+' \u2022 No games';
+    }else{
+      bar.textContent=md+'\uFF08'+wd+'\uFF09 '+form.start+'\u301C'+endT+' \u30FB \u5168'+games.length+'\u534A\u8358'+(lunchSlot?(' \u30FB \u4F11\u61A9 '+lunchSlot.start+'\u301C'+lunchSlot.end):'');
+      if(!slots.length)bar.textContent=md+'\uFF08'+wd+'\uFF09 '+form.start+' \u30FB \u534A\u8358\u304C\u4F5C\u308C\u307E\u305B\u3093';
+    }
+  }
+  var tl=document.getElementById('timeTimeline');
+  var hintEl=document.getElementById('timeLunchHint');
+  if(hintEl){hintEl.style.display=lunchSlot?'':'none'; if(lunchSlot)hintEl.textContent=t('lunchDragHint');}
+  if(tl){
+    if(!slots.length){tl.innerHTML='<p class="note">'+(currentLang==='en'?'No games can be created with these settings.':'この設定では半荘が作れません。')+'</p>';}
+    else{
+      var gamesSeen=0;
+      tl.innerHTML=slots.map(function(s){
+        if(s.lunch)return '<div class="tl-item lunch" draggable="true" data-lunch-tile="1" data-lunch-after="'+gamesSeen+'" title="'+esc(t('lunchDragHint'))+'"><span class="tl-drag-handle" aria-hidden="true">\u283F</span><span class="tl-time">'+esc(s.start)+'\u301C'+esc(s.end)+'</span><br>'+(currentLang==='en'?'🍱 Lunch Break':'🍱 \u304a\u663c\u4f11\u61a9')+'</div>';
+        gamesSeen++;
+        var isLast=(s.index>=games.length);
+        return '<div class="tl-item"'+(isLast?'':' data-drop-target="'+s.index+'"')+'><span class="tl-time">'+esc(s.start)+'\u301C'+esc(s.end)+'</span><br>'+gameLabel(s.index)+'</div>';
+      }).join('');
+      bindTimelineDrag(games.length);
+    }
+  }
+  var chips=document.getElementById('timeChips');
+  if(chips){
+    var dur=0; if(slots.length&&endT)dur=timeToMin(endT)-timeToMin(form.start); if(dur<0)dur+=1440;
+    var durTxt=currentLang==='en'?('Duration '+Math.floor(dur/60)+'h '+(dur%60)+'m'):('所要時間 '+Math.floor(dur/60)+'時間'+(dur%60?((dur%60)+'分'):''));
+    var c1=currentLang==='en'?('Total '+games.length+' games'):('全'+games.length+'半荘');
+    var c3=lunchSlot?((currentLang==='en'?'Break ':'休憩 ')+lunchSlot.start+'\u301C'+lunchSlot.end):(currentLang==='en'?'No break':'休憩なし');
+    chips.innerHTML='<span class="chip">'+esc(c1)+'</span><span class="chip">'+esc(durTxt)+'</span><span class="chip">'+esc(c3)+'</span>';
+  }
+  var rh=document.getElementById('tRhythm');
+  if(rh){
+    var h=form.hanchanMin, iv=form.intervalMin;
+    if(currentLang==='en'){rh.innerHTML='<span class="pill">Game '+h+' min</span><span class="rhythm-arrow">\u2192</span><span class="pill break">Break '+iv+' min</span><span class="rhythm-arrow">\u2192</span><span class="pill">Game '+h+' min</span><span class="rhythm-arrow">\u2026</span>';}
+    else{rh.innerHTML='<span class="pill">半荘 '+h+'分</span><span class="rhythm-arrow">\u2192</span><span class="pill break">休み '+iv+'分</span><span class="rhythm-arrow">\u2192</span><span class="pill">半荘 '+h+'分</span><span class="rhythm-arrow">\u2026</span>';}
+  }
 }
 function updateTimePreview(){
-  var keep=state.time; state.time=readTimeForm();
-  var slots=buildSchedule(); state.time=keep;
+  var form=readTimeForm(); var slots=form._slots;
+  renderTimeChrome(form,slots);
   var el=document.getElementById('timePreview');
-  if(!slots.length){el.textContent=currentLang==='en'?'No games can be created with these settings.':'この設定では半荘が作れません。';return;}
-  el.innerHTML=slots.map(function(s){return s.lunch?((currentLang==='en'?'🍱 Break ':'🍱 休憩 ')+esc(s.start)+'〜'+esc(s.end)):(gameLabel(s.index)+' '+esc(s.start)+'〜'+esc(s.end));}).join('<br>');
+  if(el){
+    if(!slots.length){el.textContent=currentLang==='en'?'No games can be created with these settings.':'この設定では半荘が作れません。';}
+    else{el.innerHTML=slots.map(function(s){return s.lunch?((currentLang==='en'?'🍱 Break ':'🍱 休憩 ')+esc(s.start)+'〜'+esc(s.end)):(gameLabel(s.index)+' '+esc(s.start)+'〜'+esc(s.end));}).join('<br>');}
+  }
 }
-['tDate','tStart','tEnd','tHanchan','tHasLunch','tLunchTarget','tLunchMin'].forEach(function(id){
-  document.getElementById(id).addEventListener('change',updateTimePreview);
-  document.getElementById(id).addEventListener('input',updateTimePreview);
+function refreshTimeResult(assignLunch){
+  var mode=currentTimeMode();
+  var form=readTimeForm();
+  var slots=form._slots;
+  var result=document.getElementById('tResultValue');
+  document.getElementById('tResultLabel').textContent=(mode==='count')?t('labelEnd'):t('labelModeCount');
+  var mv=getModeInputValue();
+  if(mv===''||mv==null){result.textContent='\u2014';}
+  else if(mode==='count'){
+    var le=lastGameEnd(slots);
+    result.textContent=le||'\u2014';
+  }else{
+    var games=slots.filter(function(s){return !s.lunch;});
+    result.textContent=games.length?String(games.length):'\u2014';
+  }
+  renderTimeChrome(form,slots);
+  if(assignLunch){
+    var decided=decidedLunchStart(slots);
+    if(decided){
+      document.getElementById('tLunchTarget').value=decided;
+      showLunchBalloon(decided);
+      captureTimeDraft();
+    }
+  }
+}
+var lunchBalloonTimer=null, lunchBalloonFadeTimer=null;
+function showLunchBalloon(timeStr){
+  var el=document.getElementById('lunchBalloon'); if(!el)return;
+  el.textContent=currentLang==='en'?('Lunch break starts at '+timeStr+'.'):('お昼休憩は '+timeStr+' 開始に決まりました');
+  el.classList.add('show');
+  if(lunchBalloonTimer)clearTimeout(lunchBalloonTimer);
+  if(lunchBalloonFadeTimer)clearTimeout(lunchBalloonFadeTimer);
+  lunchBalloonFadeTimer=setTimeout(function(){el.classList.remove('show');lunchBalloonFadeTimer=null;},1500);
+  lunchBalloonTimer=setTimeout(function(){lunchBalloonTimer=null;},2000);
+}
+function hideLunchBalloon(){
+  var el=document.getElementById('lunchBalloon'); if(!el)return;
+  if(lunchBalloonTimer)clearTimeout(lunchBalloonTimer);
+  if(lunchBalloonFadeTimer)clearTimeout(lunchBalloonFadeTimer);
+  el.classList.remove('show');
+}
+document.querySelectorAll('#view-time .seg-btn').forEach(function(btn){
+  btn.addEventListener('click',function(){
+    if(currentTimeMode()===btn.getAttribute('data-mode'))return;
+    setTimeMode(btn.getAttribute('data-mode'));
+    setModeInputValue('');
+    document.getElementById('tResultValue').textContent='';
+    hideLunchBalloon();
+    captureTimeDraft();
+    // cleared input: result should show placeholder, preview with empty input
+    refreshTimeResult(false); updateTimePreview();
+    document.getElementById('tResultValue').textContent='\u2014';
+  });
+});
+document.getElementById('tCountSelect').addEventListener('change',function(){captureTimeDraft();refreshTimeResult(true);updateTimePreview();});
+document.getElementById('tEndTime').addEventListener('blur',function(){captureTimeDraft();refreshTimeResult(true);updateTimePreview();});
+document.getElementById('tEndTime').addEventListener('change',function(){captureTimeDraft();refreshTimeResult(true);updateTimePreview();});
+['tDate','tStart','tHanchan','tInterval','tHasLunch','tLunchTarget','tLunchMin'].forEach(function(id){
+  var el=document.getElementById(id); if(!el)return;
+  el.addEventListener('change',function(){if(id==='tHasLunch'||id==='tLunchTarget')lunchAfterEdit=null;captureTimeDraft();refreshTimeResult(false);updateTimePreview();});
+  el.addEventListener('input',function(){if(id==='tHasLunch'||id==='tLunchTarget')lunchAfterEdit=null;captureTimeDraft();refreshTimeResult(false);updateTimePreview();});
 });
 document.getElementById('btnSaveTime').addEventListener('click',function(){
+  captureTimeDraft();
   var oldTime=state.time, oldSchedule=state.schedule;
-  state.time=readTimeForm();
+  var form=readTimeForm();
+  var decided=decidedLunchStart(form._slots);
+  if(decided) form.lunchTarget=decided;
+  delete form._slots;
+  form.hanchanMin=clampHanchan(form.hanchanMin); form.intervalMin=clampInterval(form.intervalMin); form.lunchMin=clampLunchMin(form.lunchMin);
+  state.time=form;
   state.schedule=buildSchedule();
-  if(!hanchanSlots().length){alert(currentLang==='en'?'Cannot create games. Check the times.':'半荘が作れません。時刻を確認してください。');state.time=oldTime;state.schedule=oldSchedule;return;}
+  if(!hanchanSlots().length){alert(currentLang==='en'?'Cannot create games. Check the times.':'半荘が作れません。時刻を確認してください。');state.time=oldTime;state.schedule=oldSchedule;renderTime();return;}
   if(state.matchups.length && !confirm(currentLang==='en'?'Saving time settings may change the number of games. Existing matchups and results will be deleted. Continue?':'時間設定を保存すると半荘数が変わることがあります。既存の対戦表と結果は消去されます。続行しますか？')){
     state.time=oldTime; state.schedule=oldSchedule; renderTime(); return;
   }
   if(state.matchups.length){state.matchups=[];state.results={};}
+  timeDraft=null;
   save(); show('main');
 });
 // ---- 卓設定 ----
+var tableDraft=null;
+function captureTableDraft(){
+  tableDraft={startPoints:document.getElementById('sStart').value,returnPoints:document.getElementById('sReturn').value,umaLow:document.getElementById('sUmaLow').value,umaHigh:document.getElementById('sUmaHigh').value,roundMode:document.getElementById('sRoundMode').value||'gosha'};
+}
+function normalizedTableSetValues(sp,rp,ul,uh,rm){
+  return {startPoints:parseInt(sp,10)||25000,returnPoints:parseInt(rp,10)||30000,umaLow:parseInt(ul,10)||0,umaHigh:parseInt(uh,10)||0,roundMode:rm||'gosha'};
+}
+function isTableDirty(){
+  if(!tableDraft)return false;
+  var a=normalizedTableSetValues(tableDraft.startPoints,tableDraft.returnPoints,tableDraft.umaLow,tableDraft.umaHigh,tableDraft.roundMode);
+  var sv=state.tableSet||{};
+  var b=normalizedTableSetValues(sv.startPoints,sv.returnPoints,sv.umaLow,sv.umaHigh,sv.roundMode||'gosha');
+  return JSON.stringify(a)!==JSON.stringify(b);
+}
 function renderTableSet(){
+  if(tableDraft){
+    document.getElementById('sStart').value=tableDraft.startPoints;
+    document.getElementById('sReturn').value=tableDraft.returnPoints;
+    document.getElementById('sUmaLow').value=tableDraft.umaLow;
+    document.getElementById('sUmaHigh').value=tableDraft.umaHigh;
+    document.getElementById('sRoundMode').value=tableDraft.roundMode||'gosha';
+    updateOka();
+    return;
+  }
   var s=state.tableSet;
   document.getElementById('sStart').value=s.startPoints;
   document.getElementById('sReturn').value=s.returnPoints;
@@ -856,12 +1289,14 @@ function updateOka(){
   document.getElementById('okaInfo').textContent=currentLang==='en'?('Oka (added to 1st automatically): '+(((rt-st)*4)/1000)+' points / Total raw for 4 players should be Starting x 4 = '+(st*4)+' points.'):('オカ（1位に自動で付きます）： '+(((rt-st)*4)/1000)+' ポイント　／　4人の素点の合計は持ち点×4 ＝ '+(st*4)+' 点が目安です。');
 }
 ['sStart','sReturn'].forEach(function(id){document.getElementById(id).addEventListener('input',updateOka);});
+['sStart','sReturn','sUmaLow','sUmaHigh','sRoundMode'].forEach(function(id){var el=document.getElementById(id);if(!el)return;el.addEventListener('input',captureTableDraft);el.addEventListener('change',captureTableDraft);});
 document.getElementById('btnSaveTableSet').addEventListener('click',function(){
   state.tableSet={startPoints:parseInt(document.getElementById('sStart').value,10)||25000,
     returnPoints:parseInt(document.getElementById('sReturn').value,10)||30000,
     umaLow:parseInt(document.getElementById('sUmaLow').value,10)||0,
     umaHigh:parseInt(document.getElementById('sUmaHigh').value,10)||0,
     roundMode:document.getElementById('sRoundMode').value||'gosha'};
+  tableDraft=null;
   save(); show('main');
 });
 </script>
@@ -869,13 +1304,29 @@ document.getElementById('btnSaveTableSet').addEventListener('click',function(){
 'use strict';
 // ---- 点数入力 ----
 var draft=null; // {r,t,players,winds:{},raw:{},ranks:null|{},autoId:null}
+var draftSnapshot=null;
+function serializeDraft(){
+  if(!draft)return null;
+  var domRaw=null;
+  try{var inps=document.querySelectorAll('#scoreForm [data-raw]');if(inps&&inps.length){domRaw={};inps.forEach(function(inp){domRaw[inp.getAttribute('data-raw')]=inp.value;});}}catch(e){}
+  var raw={},winds={};
+  draft.players.forEach(function(id){raw[id]=(draft.raw[id]==null?'':String(draft.raw[id]));winds[id]=(draft.winds&&draft.winds[id]!=null?draft.winds[id]:null);});
+  return JSON.stringify({r:draft.r,t:draft.t,players:draft.players.slice(),winds:winds,raw:raw,domRaw:domRaw,ranks:draft.ranks?Object.assign({},draft.ranks):null,suppress:!!draft.suppressAutoRank});
+}
+function takeDraftSnapshot(){draftSnapshot=serializeDraft();}
+function isScoreDirty(){
+  if(!draft)return false;
+  if(draftSnapshot===null||draftSnapshot===undefined)return false;
+  return serializeDraft()!==draftSnapshot;
+}
+function discardScoreDraft(){draft=null;draftSnapshot=null;}
 function renderScoreSelectors(scoreMode){
   var rSel=document.getElementById('scoreRound'), tSel=document.getElementById('scoreTable');
   var slots=hanchanSlots();
   rSel.innerHTML=''; tSel.innerHTML='';
   if(!state.matchups.length){
     document.getElementById('scoreForm').innerHTML='<p class="note">'+(currentLang==='en'?'No matchups yet. Press "Create Matchups" on the main screen.':'対戦表がまだありません。メイン画面で「組み合わせ作成」を押してください。')+'</p>';
-    document.getElementById('scorePreview').innerHTML=''; draft=null; pendingScoreTarget=null; return;
+    document.getElementById('scorePreview').innerHTML=''; draft=null; draftSnapshot=null; pendingScoreTarget=null; return;
   }
   state.matchups.forEach(function(mu,r){
     var s=slots[r];
@@ -921,10 +1372,29 @@ function loadDraft(r,t,loadSaved){
   });
   if(existing&&existing.ranks) draft.ranks=Object.assign({},existing.ranks);
   renderScoreForm();
+  takeDraftSnapshot();
 }
-document.getElementById('scoreRound').addEventListener('change',function(){loadDraft(parseInt(this.value,10),0,true);});
+document.getElementById('scoreRound').addEventListener('change',function(){
+  var newR=parseInt(this.value,10);
+  if(draft&&typeof isScoreDirty==='function'&&isScoreDirty()){
+    if(!confirmUnsavedMove()){
+      this.value=draft.r;
+      fillTableOptions(draft.r);
+      document.getElementById('scoreTable').value=draft.t;
+      return;
+    }
+  }
+  loadDraft(newR,0,true);
+});
 document.getElementById('scoreTable').addEventListener('change',function(){
-  loadDraft(parseInt(document.getElementById('scoreRound').value,10),parseInt(this.value,10),true);
+  var newT=parseInt(this.value,10);
+  if(draft&&typeof isScoreDirty==='function'&&isScoreDirty()){
+    if(!confirmUnsavedMove()){
+      this.value=draft.t;
+      return;
+    }
+  }
+  loadDraft(parseInt(document.getElementById('scoreRound').value,10),newT,true);
 });
 // 名前のドラッグで席（場風）を入れ替える。素点・順位は id に紐づくので人について移動する
 function syncDraftWinds(){if(!draft)return;draft.players.forEach(function(id,i){draft.winds[id]=i;});}
@@ -1176,6 +1646,7 @@ document.getElementById('btnSaveScore').addEventListener('click',function(){
     if(!confirm(currentLang==='en'?('Raw total does not match Starting x 4 ('+(state.tableSet.startPoints*4)+') (now '+sum+'). Save anyway?'):('素点の合計が持ち点×4（'+(state.tableSet.startPoints*4)+'点）と一致しません（現在 '+sum+'点）。このまま保存しますか？')))return;
   }
   state.results[resultKey(draft.r,draft.t)]={winds:Object.assign({},draft.winds),raw:Object.assign({},draft.raw),ranks:draft.ranks?Object.assign({},draft.ranks):null};
+  takeDraftSnapshot();
   save(); show('main');
 });
 </script>
@@ -1186,12 +1657,12 @@ var currentLang='ja'; var currentTheme='light';
 try{var pf=JSON.parse(localStorage.getItem(PREFS_KEY)||'null');if(pf){if(pf.lang)currentLang=pf.lang;if(pf.theme)currentTheme=pf.theme;}}catch(e){}
 function savePrefs(){try{localStorage.setItem(PREFS_KEY,JSON.stringify({lang:currentLang,theme:currentTheme}));}catch(e){}}
 var STR={
-ja:{docTitle:'麻雀成績アプリ',appTitle:'🀄 麻雀成績アプリ',appSubtitle:'オフラインで使えます。入力内容はこの端末のブラウザに自動保存されます。',langLabel:'言語',themeDark:'🌙 ダークモード',themeLight:'☀️ ライトモード',navScore:'点数入力',navMembers:'メンバー登録',navTime:'時間設定',navTableset:'卓設定',navMain:'成績表（メイン）',mainTitle:'成績表',mainSummaryDefault:'メンバー登録・時間設定をしてから「組み合わせ作成」を押してください。',btnMakeMatch:'組み合わせ作成',btnCsv:'結果をCSVで書き出し',btnImportTxt:'テキストから参加者を読み込む',membersDropNote:'テキストファイル（.txt、1人1行）をこの画面にドラッグ＆ドロップすると、参加者を新規登録できます（現在の参加者はすべて置き換わります。ボタンからの読み込みは追加です）。',btnGoScore:'点数入力へ',scheduleTitle:'対戦表・スケジュール',dataTitle:'データについて',btnReset:'全データを削除',scoreTitle:'点数入力',labelRound:'半荘',labelTable:'卓',btnSave:'保存してメイン画面に戻る',btnAutoRank:'順位を自動判定に戻す',btnBack:'メイン画面に戻る',membersTitle:'メンバー登録',btnAddMember:'＋ メンバーを追加',timeTitle:'時間設定',labelDate:'開催日',labelStart:'開始時刻',labelEnd:'終了時刻',labelHanchanMin:'1半荘の時間（分）※運営上の目安',labelHasLunch:'お昼休憩を入れる',labelLunchTarget:'お昼休憩の開始目安時刻',labelLunchMin:'お昼休憩の時間（分）',tablesetTitle:'卓設定',labelRoundMode:'100点の扱い',roundGosha:'5捨6入',roundTrunc:'プラス切り捨てマイナス切り上げ',roundNone:'素点そのまま',labelStartPoints:'最初の持ち点',labelReturnPoints:'返し点',labelUmaLow:'ウマ（小）※2位・3位分',labelUmaHigh:'ウマ（大）※1位・4位分',footerText:'麻雀成績アプリ ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.0.0',backToTop:'↑ 先頭に戻る',namePh:'名前',delTitle:'削除'},
-en:{docTitle:'Mahjong Score App',appTitle:'🀄 Mahjong Score App',appSubtitle:'Works offline. Your data is saved automatically in this browser.',langLabel:'Language',themeDark:'🌙 Dark Mode',themeLight:'☀️ Light Mode',navScore:'Score Entry',navMembers:'Members',navTime:'Time Settings',navTableset:'Table Settings',navMain:'Standings (Main)',mainTitle:'Standings',mainSummaryDefault:'Register members and set the time, then press "Create Matchups".',btnMakeMatch:'Create Matchups',btnCsv:'Export Results as CSV',btnImportTxt:'Import Participants from Text File',membersDropNote:'You can also drag & drop a text file (.txt, one name per line) onto this screen to register participants as new (all current participants will be replaced; importing via the button adds instead).',btnGoScore:'Go to Score Entry',scheduleTitle:'Matchups & Schedule',dataTitle:'About Your Data',btnReset:'Delete All Data',scoreTitle:'Score Entry',labelRound:'Game',labelTable:'Table',btnSave:'Save & Back to Main',btnAutoRank:'Reset Ranks to Auto',btnBack:'Back to Main',membersTitle:'Members',btnAddMember:'+ Add Member',timeTitle:'Time Settings',labelDate:'Date',labelStart:'Start Time',labelEnd:'End Time',labelHanchanMin:'Minutes per Game (guide)',labelHasLunch:'Include lunch break',labelLunchTarget:'Lunch start target time',labelLunchMin:'Lunch duration (min)',tablesetTitle:'Table Settings',labelRoundMode:'Handling of 100 Points',roundGosha:'5 down / 6 up',roundTrunc:'Down if plus, up if minus',roundNone:'Keep raw scores as-is',labelStartPoints:'Starting Points',labelReturnPoints:'Return Points',labelUmaLow:'Uma (small) * for 2nd / 3rd',labelUmaHigh:'Uma (large) * for 1st / 4th',footerText:'Mahjong Score App / Data is saved in this browser / © 2026 NakashimaPanda / Version 1.0.0',backToTop:'↑ Back to Top',namePh:'Name',delTitle:'Delete'}
+ja:{docTitle:'麻雀大会マネージャー',appTitle:'🀄 麻雀大会マネージャー',appSubtitle:'オフラインで使えます。入力内容はこの端末のブラウザに自動保存されます。',langLabel:'言語',themeDark:'🌙 ダークモード',themeLight:'☀️ ライトモード',navScore:'点数入力',navMembers:'メンバー登録',navTime:'時間設定',navTableset:'卓設定',navMain:'成績表（メイン）',mainTitle:'成績表',mainSummaryDefault:'メンバー登録・時間設定をしてから「組み合わせ作成」を押してください。',btnMakeMatch:'組み合わせ作成',btnCsv:'結果をCSVで書き出し',btnImportTxt:'テキストから参加者を読み込む',membersDropNote:'テキストファイル（.txt、1人1行）をこの画面にドラッグ＆ドロップすると、参加者を新規登録できます（現在の参加者はすべて置き換わります。ボタンからの読み込みは追加です）。',btnGoScore:'点数入力へ',scheduleTitle:'対戦表・スケジュール',dataTitle:'データについて',btnReset:'全データを削除',scoreTitle:'点数入力',labelRound:'半荘',labelTable:'卓',btnSave:'保存してメイン画面に戻る',btnAutoRank:'順位を自動判定に戻す',btnBack:'メイン画面に戻る',membersTitle:'メンバー登録',btnAddMember:'＋ メンバーを追加',timeTitle:'時間設定',labelDate:'開催日',labelStart:'開始時刻',labelEnd:'終了時刻',labelModeCount:'半荘数',labelModeEnd:'終了時刻',segByCount:'半荘数で決める',segByEnd:'終了時刻で決める',labelInterval:'インターバル（分）',labelHanchanMin:'1半荘の時間（分）※運営上の目安',labelHasLunch:'お昼休憩を入れる',labelLunchTarget:'お昼休憩の開始目安時刻',labelLunchMin:'お昼休憩の時間（分）',lunchDragHint:'お昼休憩のタイルはドラッグで位置を変えられます',tablesetTitle:'卓設定',labelRoundMode:'100点の扱い',roundGosha:'5捨6入',roundTrunc:'プラス切り捨てマイナス切り上げ',roundNone:'素点そのまま',labelStartPoints:'最初の持ち点',labelReturnPoints:'返し点',labelUmaLow:'ウマ（小）※2位・3位分',labelUmaHigh:'ウマ（大）※1位・4位分',footerText:'麻雀大会マネージャー ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.0.0',backToTop:'↑ 先頭に戻る',namePh:'名前',delTitle:'削除'},
+en:{docTitle:'Mahjong Tournament Manager',appTitle:'🀄 Mahjong Tournament Manager',appSubtitle:'Works offline. Your data is saved automatically in this browser.',langLabel:'Language',themeDark:'🌙 Dark Mode',themeLight:'☀️ Light Mode',navScore:'Score Entry',navMembers:'Members',navTime:'Time Settings',navTableset:'Table Settings',navMain:'Standings (Main)',mainTitle:'Standings',mainSummaryDefault:'Register members and set the time, then press "Create Matchups".',btnMakeMatch:'Create Matchups',btnCsv:'Export Results as CSV',btnImportTxt:'Import Participants from Text File',membersDropNote:'You can also drag & drop a text file (.txt, one name per line) onto this screen to register participants as new (all current participants will be replaced; importing via the button adds instead).',btnGoScore:'Go to Score Entry',scheduleTitle:'Matchups & Schedule',dataTitle:'About Your Data',btnReset:'Delete All Data',scoreTitle:'Score Entry',labelRound:'Game',labelTable:'Table',btnSave:'Save & Back to Main',btnAutoRank:'Reset Ranks to Auto',btnBack:'Back to Main',membersTitle:'Members',btnAddMember:'+ Add Member',timeTitle:'Time Settings',labelDate:'Date',labelStart:'Start Time',labelEnd:'End Time',labelModeCount:'Number of Games',labelModeEnd:'End Time',segByCount:'By number of games',segByEnd:'By end time',labelInterval:'Interval (min)',labelHanchanMin:'Minutes per Game (guide)',labelHasLunch:'Include lunch break',labelLunchTarget:'Lunch start target time',labelLunchMin:'Lunch duration (min)',lunchDragHint:'Drag the lunch break tile to change its position.',tablesetTitle:'Table Settings',labelRoundMode:'Handling of 100 Points',roundGosha:'5 down / 6 up',roundTrunc:'Down if plus, up if minus',roundNone:'Keep raw scores as-is',labelStartPoints:'Starting Points',labelReturnPoints:'Return Points',labelUmaLow:'Uma (small) * for 2nd / 3rd',labelUmaHigh:'Uma (large) * for 1st / 4th',footerText:'Mahjong Tournament Manager / Data is saved in this browser / © 2026 NakashimaPanda / Version 1.0.0',backToTop:'↑ Back to Top',namePh:'Name',delTitle:'Delete'}
 };
 var STR_LONG={
-ja:{mainNote:'・セルの色は卓を表します（同じ半荘で同じ色＝同じ卓）。\n・セルにはウマ・オカ込みの最終点数を表示し、その下に順位と素点を表示します。\n・休み番はグレーで「休」です。\n・成績表のセルをクリックすると、その半荘・卓のメンバー詳細へ移動します。\n・対戦表の各卓の行をクリックすると、その卓の点数入力画面へ移動し、入力済みの場合はそのデータが反映されます。\n・上部の「点数入力」ボタンとメイン画面の「点数入力へ」ボタンからは、初期状態（先頭の半荘・先頭の卓、素点欄は空）で開きます。\n・「合計」または「順位」の見出しをクリックすると順位順（1位が上）に並び替え、もう一度クリックすると元の登録順に戻ります。',dataNote:'データはこの端末のブラウザ内（localStorage）に自動保存されます。ブラウザのサイトデータを消去すると消えるため、節目にCSVで書き出して保管してください。書き出しはCSVのみです。',scoreNote:'・素点はキーボードでのみ入力できます（スピナーやマウスホイールでは変わりません）。\n・「25300」でも「25.3」でも入力でき、どちらも 25300 として扱います。\n・素点を入れて Enter または Tab を押すと、次の人の素点欄へカーソルが移動します（カーソル移動は素点欄の間だけです）。\n・場風は上から東・南・西・北で固定です。\n・座る場風を変えるときは、名前をつまんで（ドラッグして）移動したい場風の行へ重ねて離してください（名前欄にフォーカスがあるときは上下キーでも移動できます）。\n・入力済みの素点・順位は名前と一緒にその人について移動します。\n・入力欄に薄く表示される「0」は未入力の目安で、まだ入力したことにはなりません。\n・3人分が入ると、4人目は「持ち点×4 − 3人の合計」で自動入力されます（自動入力された値も手で直せます）。\n・同点のときは東に近い順に上位になります。\n・4人分の素点がそろって順位が確定すると、各行にウマ・合計（最終点数）・順位が表示されます（順位はその後に手で変更できます）。\n・4人分の合計が持ち点×4にならないときは、画面下に通知が出て数秒で消えます（保存時にも確認が出ます）。',membersNote:'・参加者の名前を入れてください。\n・名前を入れて Enter または Tab を押すと、次の名前欄へ移動します（最後の欄で Enter すると新しい欄が追加されます）。',timeNote:'お昼休憩は、開始目安時刻に最も近い半荘の区切りから、設定した時間だけ入れます。半荘の時間は目安なので、当日の進行が多少ずれてもかまいません。',tablesetNote:'・計算式：最終点数 ＝（素点 − 返し点）÷ 1000 ＋ ウマ ＋（1位のみオカ）。\n・ウマは 1位＋大、2位＋小、3位−小、4位−大 です。\n・例えばウマ 5・10 なら小＝5、大＝10 と入れてください。\n・飛び・焼き鳥は扱いません（素点基準）。\n・「100点の扱い」は（素点 − 返し点）÷ 1000 で出る100点単位の端数の処理です。\n・5捨6入は端数の絶対値が5以下なら捨て、6以上なら入れます。\n・プラス切り捨てマイナス切り上げは、プラスは端数を捨て、マイナスは端数を上げて、いずれも0に近い整数にします。\n・素点そのままは端数を小数第1位までそのまま使います。\n・丸める方式では、2位〜4位を先に丸め、1位がその誤差を受け取るため、4人の最終点数の合計は必ず0になります。'},
-en:{mainNote:'• Cell colours show tables (same colour in the same game = same table).\n• Each cell shows the final score including Uma and Oka, with rank and raw score below.\n• Sit-outs are grey and marked "Rest".\n• Click a cell in the standings to jump to that game\'s table member details.\n• Click a table row in the matchups list to open score entry for that table, with its saved scores shown if already entered.\n• The Score Entry buttons (top menu and the main screen button) open score entry in its initial state (first game, first table, raw-score fields empty).\n• Click the "Total" or "Rank" header to sort by rank (1st on top); click again to restore the original registration order.',dataNote:'Data is saved automatically in this browser (localStorage). Clearing site data will delete it, so export a CSV at milestones to keep a backup. Export is CSV only.',scoreNote:'• Raw scores can only be typed with the keyboard (spinner / mouse wheel will not change them).\n• You can enter "25300" or "25.3" — both are treated as 25300.\n• Press Enter or Tab after a raw score to move to the next player\'s raw-score field (cursor movement is only between raw-score fields).\n• Winds are fixed top to bottom: East, South, West, North.\n• To change a seat, drag a name onto the row of the wind you want (with a name focused, Arrow Up/Down also moves it).\n• Entered raw scores and ranks stay with that person when they move.\n• The faint 0 shown in a raw-score field is only an empty-field placeholder, not an entered score.\n• When 3 scores are entered, the 4th is filled automatically as "Starting Points x 4 minus the total of the other 3" (you can edit it).\n• Ties are broken by closeness to East.\n• When all 4 raw scores are in and ranks are decided, each row shows Uma, Total (final score) and Rank (you can change ranks afterwards).\n• If the total is not Starting Points x 4, a notice appears at the bottom and fades after a few seconds (you will also be asked on save).',membersNote:'• Enter participant names.\n• Press Enter or Tab after a name to move to the next name field (pressing Enter on the last field adds a new one).',timeNote:'Lunch is inserted at the game break closest to the target time, for the set duration. Game times are a guide, so small delays on the day are fine.',tablesetNote:'• Formula: Final = (Raw - Return) / 1000 + Uma + (Oka for 1st only).\n• Uma is 1st +large, 2nd +small, 3rd -small, 4th -large.\n• E.g. for Uma 5-10, enter small = 5, large = 10.\n• Tobi / Yakitori are not handled (raw-score based).\n• "Handling of 100 Points" sets how the 100-point fraction of (Raw - Return) / 1000 is treated.\n• "5 down / 6 up" discards a fraction of 5 or less and rounds up at 6 or more (by absolute value).\n• "Down if plus, up if minus" rounds toward zero either way.\n• "Keep raw scores as-is" keeps one decimal place.\n• With a rounding option, 2nd to 4th are rounded first and 1st absorbs the difference, so the four final scores always add up to 0.'}
+ja:{mainNote:'・セルの色は卓を表します（同じ半荘で同じ色＝同じ卓）。\n・セルにはウマ・オカ込みの最終点数を表示し、その下に順位と素点を表示します。\n・休み番はグレーで「休」です。\n・成績表のセルをクリックすると、その半荘・卓のメンバー詳細へ移動します。\n・対戦表の各卓の行をクリックすると、その卓の点数入力画面へ移動し、入力済みの場合はそのデータが反映されます。\n・上部の「点数入力」ボタンとメイン画面の「点数入力へ」ボタンからは、初期状態（先頭の半荘・先頭の卓、素点欄は空）で開きます。\n・「合計」または「順位」の見出しをクリックすると順位順（1位が上）に並び替え、もう一度クリックすると元の登録順に戻ります。',dataNote:'データはこの端末のブラウザ内（localStorage）に自動保存されます。ブラウザのサイトデータを消去すると消えるため、節目にCSVで書き出して保管してください。書き出しはCSVのみです。',scoreNote:'・素点はキーボードでのみ入力できます（スピナーやマウスホイールでは変わりません）。\n・「25300」でも「25.3」でも入力でき、どちらも 25300 として扱います。\n・素点を入れて Enter または Tab を押すと、次の人の素点欄へカーソルが移動します（カーソル移動は素点欄の間だけです）。\n・場風は上から東・南・西・北で固定です。\n・座る場風を変えるときは、名前をつまんで（ドラッグして）移動したい場風の行へ重ねて離してください（名前欄にフォーカスがあるときは上下キーでも移動できます）。\n・入力済みの素点・順位は名前と一緒にその人について移動します。\n・入力欄に薄く表示される「0」は未入力の目安で、まだ入力したことにはなりません。\n・3人分が入ると、4人目は「持ち点×4 − 3人の合計」で自動入力されます（自動入力された値も手で直せます）。\n・同点のときは東に近い順に上位になります。\n・4人分の素点がそろって順位が確定すると、各行にウマ・合計（最終点数）・順位が表示されます（順位はその後に手で変更できます）。\n・4人分の合計が持ち点×4にならないときは、画面下に通知が出て数秒で消えます（保存時にも確認が出ます）。',membersNote:'・参加者の名前を入れてください。\n・名前を入れて Enter または Tab を押すと、次の名前欄へ移動します（最後の欄で Enter すると新しい欄が追加されます）。',timeNote:'半荘と半荘の間にはインターバルが入ります（お昼休憩が入る区切りでは、お昼休憩がインターバルを兼ねます）。終了時刻か半荘数のどちらかで決められます。入力エリアからフォーカスが外れると、もう一方が計算されて表示され、決まったお昼休憩の開始時刻が目安欄に入ります。お昼休憩は、開始目安時刻に最も近い半荘の区切りから、設定した時間だけ入れます。半荘の時間は目安なので、当日の進行が多少ずれてもかまいません。',tablesetNote:'・計算式：最終点数 ＝（素点 − 返し点）÷ 1000 ＋ ウマ ＋（1位のみオカ）。\n・ウマは 1位＋大、2位＋小、3位−小、4位−大 です。\n・例えばウマ 5・10 なら小＝5、大＝10 と入れてください。\n・飛び・焼き鳥は扱いません（素点基準）。\n・「100点の扱い」は（素点 − 返し点）÷ 1000 で出る100点単位の端数の処理です。\n・5捨6入は端数の絶対値が5以下なら捨て、6以上なら入れます。\n・プラス切り捨てマイナス切り上げは、プラスは端数を捨て、マイナスは端数を上げて、いずれも0に近い整数にします。\n・素点そのままは端数を小数第1位までそのまま使います。\n・丸める方式では、2位〜4位を先に丸め、1位がその誤差を受け取るため、4人の最終点数の合計は必ず0になります。'},
+en:{mainNote:'• Cell colours show tables (same colour in the same game = same table).\n• Each cell shows the final score including Uma and Oka, with rank and raw score below.\n• Sit-outs are grey and marked "Rest".\n• Click a cell in the standings to jump to that game\'s table member details.\n• Click a table row in the matchups list to open score entry for that table, with its saved scores shown if already entered.\n• The Score Entry buttons (top menu and the main screen button) open score entry in its initial state (first game, first table, raw-score fields empty).\n• Click the "Total" or "Rank" header to sort by rank (1st on top); click again to restore the original registration order.',dataNote:'Data is saved automatically in this browser (localStorage). Clearing site data will delete it, so export a CSV at milestones to keep a backup. Export is CSV only.',scoreNote:'• Raw scores can only be typed with the keyboard (spinner / mouse wheel will not change them).\n• You can enter "25300" or "25.3" — both are treated as 25300.\n• Press Enter or Tab after a raw score to move to the next player\'s raw-score field (cursor movement is only between raw-score fields).\n• Winds are fixed top to bottom: East, South, West, North.\n• To change a seat, drag a name onto the row of the wind you want (with a name focused, Arrow Up/Down also moves it).\n• Entered raw scores and ranks stay with that person when they move.\n• The faint 0 shown in a raw-score field is only an empty-field placeholder, not an entered score.\n• When 3 scores are entered, the 4th is filled automatically as "Starting Points x 4 minus the total of the other 3" (you can edit it).\n• Ties are broken by closeness to East.\n• When all 4 raw scores are in and ranks are decided, each row shows Uma, Total (final score) and Rank (you can change ranks afterwards).\n• If the total is not Starting Points x 4, a notice appears at the bottom and fades after a few seconds (you will also be asked on save).',membersNote:'• Enter participant names.\n• Press Enter or Tab after a name to move to the next name field (pressing Enter on the last field adds a new one).',timeNote:'An interval is inserted between games (where the lunch break falls, the lunch break serves as the interval). You can set either the end time or the number of games. When the input field loses focus, the other value is calculated and shown, and the decided lunch start time is filled into the target field. Lunch is inserted at the game break closest to the target time, for the set duration. Game times are a guide, so small delays on the day are fine.',tablesetNote:'• Formula: Final = (Raw - Return) / 1000 + Uma + (Oka for 1st only).\n• Uma is 1st +large, 2nd +small, 3rd -small, 4th -large.\n• E.g. for Uma 5-10, enter small = 5, large = 10.\n• Tobi / Yakitori are not handled (raw-score based).\n• "Handling of 100 Points" sets how the 100-point fraction of (Raw - Return) / 1000 is treated.\n• "5 down / 6 up" discards a fraction of 5 or less and rounds up at 6 or more (by absolute value).\n• "Down if plus, up if minus" rounds toward zero either way.\n• "Keep raw scores as-is" keeps one decimal place.\n• With a rounding option, 2nd to 4th are rounded first and 1st absorbs the difference, so the four final scores always add up to 0.'}
 };
 function t(k){if(STR_LONG[currentLang]&&STR_LONG[currentLang][k])return STR_LONG[currentLang][k];return (STR[currentLang]&&STR[currentLang][k])||STR.ja[k]||k;}
 function windsList(){return currentLang==='en'?['East','South','West','North']:WINDS;}
