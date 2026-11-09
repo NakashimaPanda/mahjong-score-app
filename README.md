@@ -17,6 +17,7 @@ The app itself is a single HTML file (`mahjong-tournament-manager.html`). No ser
 - CSV export of results
 - Japanese / English display switching (member names you enter are shown as-is)
 - Dark mode / light mode switching
+- If you try to leave a screen (Time Settings, Table Settings, or Score Entry) with unsaved changes, a confirmation message is shown.
 
 ## How to use
 
@@ -37,6 +38,7 @@ On the Members screen, enter the participants' names.
 On the Time Settings screen, enter the event date, start time, end time, and the duration of one game. If you want a lunch break, you can also set its target start time and length.
 
 - The lunch break starts at the game boundary closest to the target start time, and lasts for the set length.
+- You can also change the lunch break position by dragging the lunch break tile in the schedule panel on the right (it can only be placed between games).
 - Game durations are a guideline for running the event. Small shifts in the actual schedule on the day are fine.
 
 ### 4. Set the table rules
