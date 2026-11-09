@@ -7,6 +7,14 @@ Version 1.0.0
 An app for managing results in four-player mahjong. It handles everything in one place: registering players, creating matchups, entering scores for each game (hanchan), displaying the standings, and exporting results as CSV.
 
 The app itself is a single HTML file (`mahjong-score-app.html`). No server or installation is needed — just open the file in a browser. It also works offline.
+## Files
+
+- mahjong-score-app.html — the app itself (single file)
+- index.html — redirect page to the app
+- README.md — documentation in English (this file)
+- README.ja.md — documentation in Japanese
+- LICENSE — MIT License
+- members-sample.txt — sample participant list (10 fictional names, one per line; for trying out the text import)
 
 ## Features
 
@@ -30,6 +38,7 @@ On the Members screen, enter the participants' names.
 
 - Type a name and press Enter or Tab to move to the next name field. Pressing Enter in the last field adds a new field.
 - You can also load participants from a text file (one person per line). Loading via the "Import Participants from Text File" button adds to the current list, while dragging and dropping a file onto the Members screen registers the participants as new, replacing all current participants. Shift_JIS files are also supported.
+- Sample: [members-sample.txt](members-sample.txt) (10 sample names, one per line)
 - At least 4 members must be registered to play.
 
 ### 3. Set the time schedule
