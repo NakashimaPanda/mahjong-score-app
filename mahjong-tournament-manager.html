@@ -724,12 +724,9 @@ function getComputed(r,t){
 </script>
 <script>
 'use strict';
-function confirmUnsavedMove(kind){
+function confirmUnsavedMove(){
   var en=(typeof currentLang!=='undefined'&&currentLang==='en');
-  if(kind==='discard'){
-    return confirm(en?'You have unsaved changes. If you move, your input will be discarded. Move anyway?':'保存されていない変更があります。移動すると入力は破棄されます。移動しますか？');
-  }
-  return confirm(en?'You have unsaved changes. Move anyway? (Your input will be kept as a draft.)':'保存されていない変更があります。このまま移動しますか？（入力は下書きとして残ります）');
+  return confirm(en?'You have unsaved changes. If you move, your input will be discarded. Move anyway?':'保存されていない変更があります。移動すると入力は破棄されます。移動しますか？');
 }
 var membersEntrySnapshot=null;
 function currentMemberNamesTrimmed(){
@@ -764,8 +761,10 @@ function show(view,scoreMode){
       if(!confirmMembersChangedMove())return;
     }
     if(hasUnsavedChanges(_cur)){
-      if(!confirmUnsavedMove(_cur==='score'?'discard':'draft'))return;
+      if(!confirmUnsavedMove())return;
       if(_cur==='score'&&typeof discardScoreDraft==='function')discardScoreDraft();
+      if(_cur==='time'&&typeof discardTimeDraft==='function')discardTimeDraft();
+      if(_cur==='tableset'&&typeof discardTableDraft==='function')discardTableDraft();
     }
   }
   if(typeof hideScoreToast==='function')hideScoreToast();
@@ -977,6 +976,10 @@ document.getElementById('btnSaveMembers').addEventListener('click',function(){
 // ---- 時間設定 ----
 var timeDraft=null;
 var lunchAfterEdit=(state.time&&state.time.lunchAfter!=null)?state.time.lunchAfter:null;
+function discardTimeDraft(){
+  timeDraft=null;
+  lunchAfterEdit=(state.time&&state.time.lunchAfter!=null)?state.time.lunchAfter:null;
+}
 function setManualLunchAfter(k,totalGames){
   var n=parseInt(k,10);
   if(isNaN(n)||n<1)return false;
@@ -1278,6 +1281,7 @@ document.getElementById('btnSaveTime').addEventListener('click',function(){
 });
 // ---- 卓設定 ----
 var tableDraft=null;
+function discardTableDraft(){tableDraft=null;}
 function captureTableDraft(){
   tableDraft={startPoints:document.getElementById('sStart').value,returnPoints:document.getElementById('sReturn').value,umaLow:document.getElementById('sUmaLow').value,umaHigh:document.getElementById('sUmaHigh').value,roundMode:document.getElementById('sRoundMode').value||'gosha'};
 }
@@ -1403,7 +1407,7 @@ function loadDraft(r,t,loadSaved){
 document.getElementById('scoreRound').addEventListener('change',function(){
   var newR=parseInt(this.value,10);
   if(draft&&typeof isScoreDirty==='function'&&isScoreDirty()){
-    if(!confirmUnsavedMove('discard')){
+    if(!confirmUnsavedMove()){
       this.value=draft.r;
       fillTableOptions(draft.r);
       document.getElementById('scoreTable').value=draft.t;
@@ -1415,7 +1419,7 @@ document.getElementById('scoreRound').addEventListener('change',function(){
 document.getElementById('scoreTable').addEventListener('change',function(){
   var newT=parseInt(this.value,10);
   if(draft&&typeof isScoreDirty==='function'&&isScoreDirty()){
-    if(!confirmUnsavedMove('discard')){
+    if(!confirmUnsavedMove()){
       this.value=draft.t;
       return;
     }
