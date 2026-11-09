@@ -208,6 +208,13 @@ body[data-theme="dark"] #view-time .tl-drag-handle{color:#c2a173}
 body[data-theme="dark"] #view-time .lunch-drag-hint{color:#94a3b8}
 body[data-theme="dark"] #view-time .chip{background:#334155;color:#e2e8f0}
 body[data-theme="dark"] #view-time .time-summary{background:#052e16}
+.unsaved-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.unsaved-overlay.show{display:flex}
+.unsaved-box{background:#fff;color:#1e293b;border-radius:12px;padding:20px;max-width:440px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.3)}
+.unsaved-box p{margin:0 0 16px;font-size:16px;font-weight:700;line-height:1.6}
+.unsaved-actions{display:flex;flex-wrap:wrap;gap:8px}
+.unsaved-actions .btn{margin:0}
+body[data-theme="dark"] .unsaved-box{background:#1e293b;color:#e2e8f0}
 </style>
 </head>
 <body>
@@ -389,6 +396,7 @@ body[data-theme="dark"] #view-time .time-summary{background:#052e16}
 <input type="file" id="fileImportTxt" accept=".txt,text/plain" style="display:none" aria-hidden="true">
 </main>
 <button type="button" id="btnBackToTop" data-i18n="backToTop" aria-label="Back to top">↑ 先頭に戻る</button>
+<div id="unsavedDialog" class="unsaved-overlay unsaved-dialog modal-overlay" role="dialog" aria-modal="true" aria-labelledby="unsavedDialogMsg" style="display:none"><div class="unsaved-box"><p id="unsavedDialogMsg" data-i18n="unsavedMsg">保存されていない変更があります。</p><div class="unsaved-actions"><button type="button" class="btn green" id="btnUnsavedSave" data-action="save" data-i18n="unsavedSave">保存して移動</button><button type="button" class="btn" id="btnUnsavedDiscard" data-action="discard" data-i18n="unsavedDiscard">変更を破棄して移動</button><button type="button" class="btn gray" id="btnUnsavedCancel" data-action="cancel" data-i18n="unsavedCancel">キャンセル</button></div></div></div>
 <footer data-i18n="footerText">麻雀大会マネージャー ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.0.0</footer>
 <script>
 'use strict';
@@ -725,10 +733,38 @@ function getComputed(r,t){
 </script>
 <script>
 'use strict';
-function confirmUnsavedMove(){
+var unsavedDialogOpen=false;
+var _unsavedDialogResolve=null;
+var _unsavedDialogPromise=null;
+function isUnsavedDialogOpen(){return unsavedDialogOpen;}
+function showUnsavedDialog(){
+  if(unsavedDialogOpen&&_unsavedDialogPromise)return _unsavedDialogPromise;
+  unsavedDialogOpen=true;
   var en=(typeof currentLang!=='undefined'&&currentLang==='en');
-  return confirm(en?'You have unsaved changes. If you move, your input will be discarded. Move anyway?':'保存されていない変更があります。移動すると入力は破棄されます。移動しますか？');
+  var msgEl=document.getElementById('unsavedDialogMsg'); if(msgEl)msgEl.textContent=en?'You have unsaved changes.':'保存されていない変更があります。';
+  var saveBtn=document.getElementById('btnUnsavedSave'); if(saveBtn)saveBtn.textContent=en?'Save & Move':'保存して移動';
+  var discardBtn=document.getElementById('btnUnsavedDiscard'); if(discardBtn)discardBtn.textContent=en?'Discard & Move':'変更を破棄して移動';
+  var cancelBtn=document.getElementById('btnUnsavedCancel'); if(cancelBtn)cancelBtn.textContent=en?'Cancel':'キャンセル';
+  var dlg=document.getElementById('unsavedDialog'); if(dlg){dlg.classList.add('show');dlg.style.display='flex';}
+  _unsavedDialogPromise=new Promise(function(resolve){_unsavedDialogResolve=resolve;});
+  return _unsavedDialogPromise;
 }
+function promptUnsavedMove(){return showUnsavedDialog();}
+function closeUnsavedDialog(result){
+  if(!unsavedDialogOpen)return;
+  unsavedDialogOpen=false;
+  var dlg=document.getElementById('unsavedDialog'); if(dlg){dlg.classList.remove('show');dlg.style.display='none';}
+  var r=_unsavedDialogResolve; _unsavedDialogResolve=null; _unsavedDialogPromise=null;
+  if(r)r(result);
+}
+(function(){
+  var dlg=document.getElementById('unsavedDialog'); if(!dlg)return;
+  var saveBtn=document.getElementById('btnUnsavedSave'); if(saveBtn)saveBtn.addEventListener('click',function(){closeUnsavedDialog('save');});
+  var discardBtn=document.getElementById('btnUnsavedDiscard'); if(discardBtn)discardBtn.addEventListener('click',function(){closeUnsavedDialog('discard');});
+  var cancelBtn=document.getElementById('btnUnsavedCancel'); if(cancelBtn)cancelBtn.addEventListener('click',function(){closeUnsavedDialog('cancel');});
+  dlg.addEventListener('click',function(e){if(e.target===dlg)closeUnsavedDialog('cancel');});
+  document.addEventListener('keydown',function(e){if(unsavedDialogOpen&&(e.key==='Escape'||e.key==='Esc'))closeUnsavedDialog('cancel');});
+})();
 var membersEntrySnapshot=null;
 function currentMemberNamesTrimmed(){
   try{if(typeof syncMemberInputs==='function')syncMemberInputs();}catch(e){}
@@ -753,19 +789,31 @@ function hasUnsavedChanges(view){
   }catch(e){return false;}
   return false;
 }
-function show(view,scoreMode){
+async function show(view,scoreMode){
   var _act=document.querySelector('.view.active');
   var _cur=_act?_act.id.replace('view-',''):'main';
   var _isScoreReset=(view==='score'&&_cur==='score'&&(scoreMode==='reset'||scoreMode==='blank'));
   if(view!==_cur||_isScoreReset){
+    if(unsavedDialogOpen)return;
     if(_cur==='members'&&view!=='members'&&state.matchups&&state.matchups.length&&isMembersChangedFromSnapshot()){
       if(!confirmMembersChangedMove())return;
     }
     if(hasUnsavedChanges(_cur)){
-      if(!confirmUnsavedMove())return;
-      if(_cur==='score'&&typeof discardScoreDraft==='function')discardScoreDraft();
-      if(_cur==='time'&&typeof discardTimeDraft==='function')discardTimeDraft();
-      if(_cur==='tableset'&&typeof discardTableDraft==='function')discardTableDraft();
+      var _choice=await showUnsavedDialog();
+      if(_choice==='cancel')return;
+      if(_choice==='discard'){
+        if(_cur==='score'&&typeof discardScoreDraft==='function')discardScoreDraft();
+        if(_cur==='time'&&typeof discardTimeDraft==='function')discardTimeDraft();
+        if(_cur==='tableset'&&typeof discardTableDraft==='function')discardTableDraft();
+      }else if(_choice==='save'){
+        var _ok=false;
+        try{
+          if(_cur==='time'&&typeof saveTimeSettings==='function')_ok=saveTimeSettings();
+          else if(_cur==='tableset'&&typeof saveTableSettings==='function')_ok=saveTableSettings();
+          else if(_cur==='score'&&typeof saveScore==='function')_ok=saveScore();
+        }catch(e){_ok=false;}
+        if(!_ok)return;
+      }else{return;}
     }
   }
   if(typeof hideScoreToast==='function')hideScoreToast();
@@ -1262,7 +1310,7 @@ document.getElementById('tEndTime').addEventListener('change',function(){capture
   el.addEventListener('change',function(){if(id==='tHasLunch'||id==='tLunchTarget')lunchAfterEdit=null;captureTimeDraft();refreshTimeResult(false);updateTimePreview();});
   el.addEventListener('input',function(){if(id==='tHasLunch'||id==='tLunchTarget')lunchAfterEdit=null;captureTimeDraft();refreshTimeResult(false);updateTimePreview();});
 });
-document.getElementById('btnSaveTime').addEventListener('click',function(){
+function saveTimeSettings(){
   captureTimeDraft();
   var oldTime=state.time, oldSchedule=state.schedule;
   var form=readTimeForm();
@@ -1272,13 +1320,16 @@ document.getElementById('btnSaveTime').addEventListener('click',function(){
   form.hanchanMin=clampHanchan(form.hanchanMin); form.intervalMin=clampInterval(form.intervalMin); form.lunchMin=clampLunchMin(form.lunchMin);
   state.time=form;
   state.schedule=buildSchedule();
-  if(!hanchanSlots().length){alert(currentLang==='en'?'Cannot create games. Check the times.':'半荘が作れません。時刻を確認してください。');state.time=oldTime;state.schedule=oldSchedule;renderTime();return;}
+  if(!hanchanSlots().length){alert(currentLang==='en'?'Cannot create games. Check the times.':'半荘が作れません。時刻を確認してください。');state.time=oldTime;state.schedule=oldSchedule;renderTime();return false;}
   if(state.matchups.length && !confirm(currentLang==='en'?'Saving time settings may change the number of games. Existing matchups and results will be deleted. Continue?':'時間設定を保存すると半荘数が変わることがあります。既存の対戦表と結果は消去されます。続行しますか？')){
-    state.time=oldTime; state.schedule=oldSchedule; renderTime(); return;
+    state.time=oldTime; state.schedule=oldSchedule; renderTime(); return false;
   }
   if(state.matchups.length){state.matchups=[];state.results={};}
   timeDraft=null;
-  save(); show('main');
+  save(); return true;
+}
+document.getElementById('btnSaveTime').addEventListener('click',function(){
+  if(saveTimeSettings())show('main');
 });
 // ---- 卓設定 ----
 var tableDraft=null;
@@ -1321,14 +1372,18 @@ function updateOka(){
 }
 ['sStart','sReturn'].forEach(function(id){document.getElementById(id).addEventListener('input',updateOka);});
 ['sStart','sReturn','sUmaLow','sUmaHigh','sRoundMode'].forEach(function(id){var el=document.getElementById(id);if(!el)return;el.addEventListener('input',captureTableDraft);el.addEventListener('change',captureTableDraft);});
-document.getElementById('btnSaveTableSet').addEventListener('click',function(){
+function saveTableSettings(){
   state.tableSet={startPoints:parseInt(document.getElementById('sStart').value,10)||25000,
     returnPoints:parseInt(document.getElementById('sReturn').value,10)||30000,
     umaLow:parseInt(document.getElementById('sUmaLow').value,10)||0,
     umaHigh:parseInt(document.getElementById('sUmaHigh').value,10)||0,
     roundMode:document.getElementById('sRoundMode').value||'gosha'};
   tableDraft=null;
-  save(); show('main');
+  save(); return true;
+}
+var saveTableSetSettings=saveTableSettings;
+document.getElementById('btnSaveTableSet').addEventListener('click',function(){
+  if(saveTableSettings())show('main');
 });
 </script>
 <script>
@@ -1405,25 +1460,29 @@ function loadDraft(r,t,loadSaved){
   renderScoreForm();
   takeDraftSnapshot();
 }
-document.getElementById('scoreRound').addEventListener('change',function(){
+document.getElementById('scoreRound').addEventListener('change',async function(){
   var newR=parseInt(this.value,10);
+  var sel=this;
   if(draft&&typeof isScoreDirty==='function'&&isScoreDirty()){
-    if(!confirmUnsavedMove()){
-      this.value=draft.r;
-      fillTableOptions(draft.r);
-      document.getElementById('scoreTable').value=draft.t;
-      return;
-    }
+    if(typeof unsavedDialogOpen!=='undefined'&&unsavedDialogOpen){sel.value=draft.r;fillTableOptions(draft.r);document.getElementById('scoreTable').value=draft.t;return;}
+    var _choice=await showUnsavedDialog();
+    if(_choice==='cancel'){sel.value=draft.r;fillTableOptions(draft.r);document.getElementById('scoreTable').value=draft.t;return;}
+    if(_choice==='discard'){discardScoreDraft();}
+    else if(_choice==='save'){var _ok=false;try{_ok=saveScore();}catch(e){_ok=false;}if(!_ok){sel.value=draft.r;fillTableOptions(draft.r);document.getElementById('scoreTable').value=draft.t;return;}}
+    else{sel.value=draft.r;fillTableOptions(draft.r);document.getElementById('scoreTable').value=draft.t;return;}
   }
   loadDraft(newR,0,true);
 });
-document.getElementById('scoreTable').addEventListener('change',function(){
+document.getElementById('scoreTable').addEventListener('change',async function(){
   var newT=parseInt(this.value,10);
+  var sel=this;
   if(draft&&typeof isScoreDirty==='function'&&isScoreDirty()){
-    if(!confirmUnsavedMove()){
-      this.value=draft.t;
-      return;
-    }
+    if(typeof unsavedDialogOpen!=='undefined'&&unsavedDialogOpen){sel.value=draft.t;return;}
+    var _choice=await showUnsavedDialog();
+    if(_choice==='cancel'){sel.value=draft.t;return;}
+    if(_choice==='discard'){discardScoreDraft();}
+    else if(_choice==='save'){var _ok=false;try{_ok=saveScore();}catch(e){_ok=false;}if(!_ok){sel.value=draft.t;return;}}
+    else{sel.value=draft.t;return;}
   }
   loadDraft(parseInt(document.getElementById('scoreRound').value,10),newT,true);
 });
@@ -1662,8 +1721,8 @@ function updateScorePreview(){
 document.getElementById('btnAutoRank').addEventListener('click',function(){
   if(!draft)return; draft.ranks=null; draft.suppressAutoRank=false; renderScoreForm();
 });
-document.getElementById('btnSaveScore').addEventListener('click',function(){
-  if(!draft){show('main');return;}
+function saveScore(){
+  if(!draft){return true;}
   // 保存前に 25.3 のような入力を 25300 に正規化する
   draft.players.forEach(function(id){
     var pv=parseScoreValue(draft.raw[id]);
@@ -1671,14 +1730,19 @@ document.getElementById('btnSaveScore').addEventListener('click',function(){
   });
   var res={winds:draft.winds,raw:draft.raw,ranks:draft.ranks};
   var comp=computeResult(draft.players,res);
-  if(!comp){alert(currentLang==='en'?'Enter raw scores for all 4 players as numbers (e.g. 25300 or 25.3).':'4人分の素点を数字で入力してください（例：25300 または 25.3）。');return;}
+  if(!comp){alert(currentLang==='en'?'Enter raw scores for all 4 players as numbers (e.g. 25300 or 25.3).':'4人分の素点を数字で入力してください（例：25300 または 25.3）。');return false;}
   var sum=draft.players.reduce(function(a,id){return a+parseScoreValue(draft.raw[id]);},0);
   if(sum!==state.tableSet.startPoints*4){
-    if(!confirm(currentLang==='en'?('Raw total does not match Starting x 4 ('+(state.tableSet.startPoints*4)+') (now '+sum+'). Save anyway?'):('素点の合計が持ち点×4（'+(state.tableSet.startPoints*4)+'点）と一致しません（現在 '+sum+'点）。このまま保存しますか？')))return;
+    if(!confirm(currentLang==='en'?('Raw total does not match Starting x 4 ('+(state.tableSet.startPoints*4)+') (now '+sum+'). Save anyway?'):('素点の合計が持ち点×4（'+(state.tableSet.startPoints*4)+'点）と一致しません（現在 '+sum+'点）。このまま保存しますか？')))return false;
   }
   state.results[resultKey(draft.r,draft.t)]={winds:Object.assign({},draft.winds),raw:Object.assign({},draft.raw),ranks:draft.ranks?Object.assign({},draft.ranks):null};
   takeDraftSnapshot();
-  save(); show('main');
+  save(); return true;
+}
+var saveScoreSettings=saveScore;
+document.getElementById('btnSaveScore').addEventListener('click',function(){
+  if(!draft){show('main');return;}
+  if(saveScore())show('main');
 });
 </script>
 <script>
@@ -1688,8 +1752,8 @@ var currentLang='ja'; var currentTheme='light';
 try{var pf=JSON.parse(localStorage.getItem(PREFS_KEY)||'null');if(pf){if(pf.lang)currentLang=pf.lang;if(pf.theme)currentTheme=pf.theme;}}catch(e){}
 function savePrefs(){try{localStorage.setItem(PREFS_KEY,JSON.stringify({lang:currentLang,theme:currentTheme}));}catch(e){}}
 var STR={
-ja:{docTitle:'麻雀大会マネージャー',appTitle:'🀄 麻雀大会マネージャー',langLabel:'言語',themeDark:'🌙 ダークモード',themeLight:'☀️ ライトモード',navScore:'点数入力',navMembers:'メンバー登録',navTime:'時間設定',navTableset:'卓設定',navMain:'成績表（メイン）',mainTitle:'成績表',mainSummaryDefault:'メンバー登録・時間設定をしてから「組み合わせ作成」を押してください。',btnMakeMatch:'組み合わせ作成',btnCsv:'結果をCSVで書き出し',btnImportTxt:'テキストから参加者を読み込む',membersDropNote:'テキストファイル（.txt、1人1行）をこの画面にドラッグ＆ドロップすると、参加者を新規登録できます（現在の参加者はすべて置き換わります。ボタンからの読み込みは追加です）。',btnGoScore:'点数入力へ',scheduleTitle:'対戦表・スケジュール',dataTitle:'データについて',btnReset:'全データを削除',scoreTitle:'点数入力',labelRound:'半荘',labelTable:'卓',btnSave:'保存してメイン画面に戻る',btnCheckMembers:'登録内容を確認してメイン画面に戻る',btnAutoRank:'順位を自動判定に戻す',btnBack:'メイン画面に戻る',membersTitle:'メンバー登録',btnAddMember:'＋ メンバーを追加',timeTitle:'時間設定',labelDate:'開催日',labelStart:'開始時刻',labelEnd:'終了時刻',labelModeCount:'半荘数',labelModeEnd:'終了時刻',segByCount:'半荘数で決める',segByEnd:'終了時刻で決める',labelInterval:'インターバル（分）',labelHanchanMin:'1半荘の時間（分）※運営上の目安',labelHasLunch:'お昼休憩を入れる',labelLunchTarget:'お昼休憩の開始目安時刻',labelLunchMin:'お昼休憩の時間（分）',lunchDragHint:'お昼休憩のタイルはドラッグで位置を変えられます',tablesetTitle:'卓設定',labelRoundMode:'100点の扱い',roundGosha:'5捨6入',roundTrunc:'プラス切り捨てマイナス切り上げ',roundNone:'素点そのまま',labelStartPoints:'最初の持ち点',labelReturnPoints:'返し点',labelUmaLow:'ウマ（小）※2位・3位分',labelUmaHigh:'ウマ（大）※1位・4位分',footerText:'麻雀大会マネージャー ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.0.0',backToTop:'↑ 先頭に戻る',namePh:'名前',delTitle:'削除'},
-en:{docTitle:'Mahjong Tournament Manager',appTitle:'🀄 Mahjong Tournament Manager',langLabel:'Language',themeDark:'🌙 Dark Mode',themeLight:'☀️ Light Mode',navScore:'Score Entry',navMembers:'Members',navTime:'Time Settings',navTableset:'Table Settings',navMain:'Standings (Main)',mainTitle:'Standings',mainSummaryDefault:'Register members and set the time, then press "Create Matchups".',btnMakeMatch:'Create Matchups',btnCsv:'Export Results as CSV',btnImportTxt:'Import Participants from Text File',membersDropNote:'You can also drag & drop a text file (.txt, one name per line) onto this screen to register participants as new (all current participants will be replaced; importing via the button adds instead).',btnGoScore:'Go to Score Entry',scheduleTitle:'Matchups & Schedule',dataTitle:'About Your Data',btnReset:'Delete All Data',scoreTitle:'Score Entry',labelRound:'Game',labelTable:'Table',btnSave:'Save & Back to Main',btnCheckMembers:'Check Members & Back to Main',btnAutoRank:'Reset Ranks to Auto',btnBack:'Back to Main',membersTitle:'Members',btnAddMember:'+ Add Member',timeTitle:'Time Settings',labelDate:'Date',labelStart:'Start Time',labelEnd:'End Time',labelModeCount:'Number of Games',labelModeEnd:'End Time',segByCount:'By number of games',segByEnd:'By end time',labelInterval:'Interval (min)',labelHanchanMin:'Minutes per Game (guide)',labelHasLunch:'Include lunch break',labelLunchTarget:'Lunch start target time',labelLunchMin:'Lunch duration (min)',lunchDragHint:'Drag the lunch break tile to change its position.',tablesetTitle:'Table Settings',labelRoundMode:'Handling of 100 Points',roundGosha:'5 down / 6 up',roundTrunc:'Down if plus, up if minus',roundNone:'Keep raw scores as-is',labelStartPoints:'Starting Points',labelReturnPoints:'Return Points',labelUmaLow:'Uma (small) * for 2nd / 3rd',labelUmaHigh:'Uma (large) * for 1st / 4th',footerText:'Mahjong Tournament Manager / Data is saved in this browser / © 2026 NakashimaPanda / Version 1.0.0',backToTop:'↑ Back to Top',namePh:'Name',delTitle:'Delete'}
+ja:{docTitle:'麻雀大会マネージャー',appTitle:'🀄 麻雀大会マネージャー',langLabel:'言語',themeDark:'🌙 ダークモード',themeLight:'☀️ ライトモード',navScore:'点数入力',navMembers:'メンバー登録',navTime:'時間設定',navTableset:'卓設定',navMain:'成績表（メイン）',mainTitle:'成績表',mainSummaryDefault:'メンバー登録・時間設定をしてから「組み合わせ作成」を押してください。',btnMakeMatch:'組み合わせ作成',btnCsv:'結果をCSVで書き出し',btnImportTxt:'テキストから参加者を読み込む',membersDropNote:'テキストファイル（.txt、1人1行）をこの画面にドラッグ＆ドロップすると、参加者を新規登録できます（現在の参加者はすべて置き換わります。ボタンからの読み込みは追加です）。',btnGoScore:'点数入力へ',scheduleTitle:'対戦表・スケジュール',dataTitle:'データについて',btnReset:'全データを削除',scoreTitle:'点数入力',labelRound:'半荘',labelTable:'卓',btnSave:'保存してメイン画面に戻る',btnCheckMembers:'登録内容を確認してメイン画面に戻る',btnAutoRank:'順位を自動判定に戻す',btnBack:'メイン画面に戻る',membersTitle:'メンバー登録',btnAddMember:'＋ メンバーを追加',timeTitle:'時間設定',labelDate:'開催日',labelStart:'開始時刻',labelEnd:'終了時刻',labelModeCount:'半荘数',labelModeEnd:'終了時刻',segByCount:'半荘数で決める',segByEnd:'終了時刻で決める',labelInterval:'インターバル（分）',labelHanchanMin:'1半荘の時間（分）※運営上の目安',labelHasLunch:'お昼休憩を入れる',labelLunchTarget:'お昼休憩の開始目安時刻',labelLunchMin:'お昼休憩の時間（分）',lunchDragHint:'お昼休憩のタイルはドラッグで位置を変えられます',tablesetTitle:'卓設定',labelRoundMode:'100点の扱い',roundGosha:'5捨6入',roundTrunc:'プラス切り捨てマイナス切り上げ',roundNone:'素点そのまま',labelStartPoints:'最初の持ち点',labelReturnPoints:'返し点',labelUmaLow:'ウマ（小）※2位・3位分',labelUmaHigh:'ウマ（大）※1位・4位分',footerText:'麻雀大会マネージャー ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.0.0',backToTop:'↑ 先頭に戻る',namePh:'名前',delTitle:'削除',unsavedMsg:'保存されていない変更があります。',unsavedSave:'保存して移動',unsavedDiscard:'変更を破棄して移動',unsavedCancel:'キャンセル'},
+en:{docTitle:'Mahjong Tournament Manager',appTitle:'🀄 Mahjong Tournament Manager',langLabel:'Language',themeDark:'🌙 Dark Mode',themeLight:'☀️ Light Mode',navScore:'Score Entry',navMembers:'Members',navTime:'Time Settings',navTableset:'Table Settings',navMain:'Standings (Main)',mainTitle:'Standings',mainSummaryDefault:'Register members and set the time, then press "Create Matchups".',btnMakeMatch:'Create Matchups',btnCsv:'Export Results as CSV',btnImportTxt:'Import Participants from Text File',membersDropNote:'You can also drag & drop a text file (.txt, one name per line) onto this screen to register participants as new (all current participants will be replaced; importing via the button adds instead).',btnGoScore:'Go to Score Entry',scheduleTitle:'Matchups & Schedule',dataTitle:'About Your Data',btnReset:'Delete All Data',scoreTitle:'Score Entry',labelRound:'Game',labelTable:'Table',btnSave:'Save & Back to Main',btnCheckMembers:'Check Members & Back to Main',btnAutoRank:'Reset Ranks to Auto',btnBack:'Back to Main',membersTitle:'Members',btnAddMember:'+ Add Member',timeTitle:'Time Settings',labelDate:'Date',labelStart:'Start Time',labelEnd:'End Time',labelModeCount:'Number of Games',labelModeEnd:'End Time',segByCount:'By number of games',segByEnd:'By end time',labelInterval:'Interval (min)',labelHanchanMin:'Minutes per Game (guide)',labelHasLunch:'Include lunch break',labelLunchTarget:'Lunch start target time',labelLunchMin:'Lunch duration (min)',lunchDragHint:'Drag the lunch break tile to change its position.',tablesetTitle:'Table Settings',labelRoundMode:'Handling of 100 Points',roundGosha:'5 down / 6 up',roundTrunc:'Down if plus, up if minus',roundNone:'Keep raw scores as-is',labelStartPoints:'Starting Points',labelReturnPoints:'Return Points',labelUmaLow:'Uma (small) * for 2nd / 3rd',labelUmaHigh:'Uma (large) * for 1st / 4th',footerText:'Mahjong Tournament Manager / Data is saved in this browser / © 2026 NakashimaPanda / Version 1.0.0',backToTop:'↑ Back to Top',namePh:'Name',delTitle:'Delete',unsavedMsg:'You have unsaved changes.',unsavedSave:'Save & Move',unsavedDiscard:'Discard & Move',unsavedCancel:'Cancel'}
 };
 var STR_LONG={
 ja:{mainNote:'・セルの色は卓を表します（同じ半荘で同じ色＝同じ卓）。\n・セルにはウマ・オカ込みの最終点数を表示し、その下に順位と素点を表示します。\n・休み番はグレーで「休」です。\n・成績表のセルをクリックすると、その半荘・卓のメンバー詳細へ移動します。\n・対戦表の各卓の行をクリックすると、その卓の点数入力画面へ移動し、入力済みの場合はそのデータが反映されます。\n・上部の「点数入力」ボタンとメイン画面の「点数入力へ」ボタンからは、初期状態（先頭の半荘・先頭の卓、素点欄は空）で開きます。\n・「合計」または「順位」の見出しをクリックすると順位順（1位が上）に並び替え、もう一度クリックすると元の登録順に戻ります。',dataNote:'データはこの端末のブラウザ内（localStorage）に自動保存されます。ブラウザのサイトデータを消去すると消えるため、節目にCSVで書き出して保管してください。書き出しはCSVのみです。',scoreNote:'・素点はキーボードでのみ入力できます（スピナーやマウスホイールでは変わりません）。\n・「25300」でも「25.3」でも入力でき、どちらも 25300 として扱います。\n・素点を入れて Enter または Tab を押すと、次の人の素点欄へカーソルが移動します（カーソル移動は素点欄の間だけです）。\n・場風は上から東・南・西・北で固定です。\n・座る場風を変えるときは、名前をつまんで（ドラッグして）移動したい場風の行へ重ねて離してください（名前欄にフォーカスがあるときは上下キーでも移動できます）。\n・入力済みの素点・順位は名前と一緒にその人について移動します。\n・入力欄に薄く表示される「0」は未入力の目安で、まだ入力したことにはなりません。\n・3人分が入ると、4人目は「持ち点×4 − 3人の合計」で自動入力されます（自動入力された値も手で直せます）。\n・同点のときは東に近い順に上位になります。\n・4人分の素点がそろって順位が確定すると、各行にウマ・合計（最終点数）・順位が表示されます（順位はその後に手で変更できます）。\n・4人分の合計が持ち点×4にならないときは、画面下に通知が出て数秒で消えます（保存時にも確認が出ます）。',membersNote:'・参加者の名前を入れてください。\n・名前は入力した時点で自動保存されます。保存操作は不要で、画面を移動しても入力内容は残ります。\n・名前を入れて Enter または Tab を押すと、次の名前欄へ移動します（最後の欄で Enter すると新しい欄が追加されます）。',timeNote:'半荘と半荘の間にはインターバルが入ります（お昼休憩が入る区切りでは、お昼休憩がインターバルを兼ねます）。終了時刻か半荘数のどちらかで決められます。入力エリアからフォーカスが外れると、もう一方が計算されて表示され、決まったお昼休憩の開始時刻が目安欄に入ります。お昼休憩は、開始目安時刻に最も近い半荘の区切りから、設定した時間だけ入れます。半荘の時間は目安なので、当日の進行が多少ずれてもかまいません。',tablesetNote:'・計算式：最終点数 ＝（素点 − 返し点）÷ 1000 ＋ ウマ ＋（1位のみオカ）。\n・ウマは 1位＋大、2位＋小、3位−小、4位−大 です。\n・例えばウマ 5・10 なら小＝5、大＝10 と入れてください。\n・飛び・焼き鳥は扱いません（素点基準）。\n・「100点の扱い」は（素点 − 返し点）÷ 1000 で出る100点単位の端数の処理です。\n・5捨6入は端数の絶対値が5以下なら捨て、6以上なら入れます。\n・プラス切り捨てマイナス切り上げは、プラスは端数を捨て、マイナスは端数を上げて、いずれも0に近い整数にします。\n・素点そのままは端数を小数第1位までそのまま使います。\n・丸める方式では、2位〜4位を先に丸め、1位がその誤差を受け取るため、4人の最終点数の合計は必ず0になります。'},
