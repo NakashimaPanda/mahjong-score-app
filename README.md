@@ -6,7 +6,7 @@ Version 1.0.0
 
 An app for managing results in four-player mahjong. It handles everything in one place: registering players, creating matchups, entering scores for each game (hanchan), displaying the standings, and exporting results as CSV.
 
-The app itself is a single HTML file (`mahjong-score-app.html`). No server or installation is needed — just open the file in a browser. It also works offline.
+The app itself is a single HTML file (`mahjong-tournament-manager.html`). No server or installation is needed — just open the file in a browser. It also works offline.
 
 ## Features
 
@@ -22,7 +22,7 @@ The app itself is a single HTML file (`mahjong-score-app.html`). No server or in
 
 ### 1. Open the file
 
-Open `mahjong-score-app.html` in your browser. No internet connection is required.
+Open `mahjong-tournament-manager.html` in your browser. No internet connection is required.
 
 ### 2. Register members
 
