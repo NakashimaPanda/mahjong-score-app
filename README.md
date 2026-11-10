@@ -16,6 +16,7 @@ The app itself is a single HTML file (`mahjong-tournament-manager.html`). No ser
 - Standings (with totals and ranks), plus a matchups and schedule display
 - CSV export of results
 - Print table cards: print a card for each participant showing their table and start time for every game, on A4 paper (portrait). Choose 1, 2 or 4 cards per sheet.
+- Print the day's schedule: print the full day's schedule large on one A4 portrait sheet, for posting at the venue.
 - Japanese / English display switching (member names you enter are shown as-is)
 - Dark mode / light mode switching
 - If you try to leave a screen (Time Settings, Table Settings, or Score Entry) with unsaved changes, a dialog offers three choices: "Save & Move", "Discard & Move", and "Cancel" (choosing "Discard & Move" discards the unsaved changes).
@@ -38,7 +39,7 @@ On the Members screen, enter the participants' names.
 
 ### 3. Set the time schedule
 
-On the Time Settings screen, set the event date, the start time, how the day ends (by number of games or by end time), the minutes per game, and the interval. If you include a lunch break, also set its target start time and duration.
+On the Time Settings screen, set the event date, the start time, how the day ends (by number of games or by end time), the minutes per game, and the interval. If you include a lunch break, also set its target start time and duration. Use 'Print Schedule' below the timeline to print it as a poster.
 
 - You can choose whether the day ends "by number of games" or "by end time". The other value (end time / number of games) is calculated automatically and shown.
 - An interval (a short gap) can be inserted between games. Where the lunch break falls, the lunch break serves as the interval (they are not added together).
