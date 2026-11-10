@@ -1,6 +1,6 @@
 # Mahjong Tournament Manager
 
-Version 1.0.0
+Version 1.1.0
 
 [Japanese version](README.ja.md)
 
