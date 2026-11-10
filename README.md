@@ -17,7 +17,7 @@ The app itself is a single HTML file (`mahjong-tournament-manager.html`). No ser
 - CSV export of results
 - Japanese / English display switching (member names you enter are shown as-is)
 - Dark mode / light mode switching
-- If you try to leave a screen (Time Settings, Table Settings, or Score Entry) with unsaved changes, a confirmation message is shown.
+- If you try to leave a screen (Time Settings, Table Settings, or Score Entry) with unsaved changes, a dialog offers three choices: "Save & Move", "Discard & Move", and "Cancel" (choosing "Discard & Move" discards the unsaved changes).
 
 ## How to use
 
@@ -30,14 +30,18 @@ Open `mahjong-tournament-manager.html` in your browser. No internet connection i
 On the Members screen, enter the participants' names.
 
 - Type a name and press Enter or Tab to move to the next name field. Pressing Enter in the last field adds a new field.
+- Names are saved automatically as you type. No save action is needed, and your input remains even if you move to another screen.
+- If you change members after matchups have been created, the existing matchups and results may no longer match. In that case, a confirmation message is shown when you leave the Members screen (please recreate the matchups).
 - You can also load participants from a text file (one person per line). Loading via the "Import Participants from Text File" button adds to the current list, while dragging and dropping a file onto the Members screen registers the participants as new, replacing all current participants. Shift_JIS files are also supported.
 - At least 4 members must be registered to play.
 
 ### 3. Set the time schedule
 
-On the Time Settings screen, enter the event date, start time, end time, and the duration of one game. If you want a lunch break, you can also set its target start time and length.
+On the Time Settings screen, set the event date, the start time, how the day ends (by number of games or by end time), the minutes per game, and the interval. If you include a lunch break, also set its target start time and duration.
 
-- The lunch break starts at the game boundary closest to the target start time, and lasts for the set length.
+- You can choose whether the day ends "by number of games" or "by end time". The other value (end time / number of games) is calculated automatically and shown.
+- An interval (a short gap) can be inserted between games. Where the lunch break falls, the lunch break serves as the interval (they are not added together).
+- The lunch break starts at the game boundary closest to the target start time, and lasts for the set duration. The decided start time is filled into the target time field.
 - You can also change the lunch break position by dragging the lunch break tile in the schedule panel on the right (it can only be placed between games).
 - Game durations are a guideline for running the event. Small shifts in the actual schedule on the day are fine.
 
