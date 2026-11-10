@@ -1,6 +1,6 @@
 # Mahjong Tournament Manager
 
-Version 1.1.0
+Version 1.2.0
 
 [Japanese version](README.ja.md)
 
@@ -15,6 +15,7 @@ The app itself is a single HTML file (`mahjong-tournament-manager.html`). No ser
 - Score entry per game and table, with automatic rank calculation
 - Standings (with totals and ranks), plus a matchups and schedule display
 - CSV export of results
+- Print table cards: print a card for each participant showing their table and start time for every game, on A4 paper (portrait). Choose 1, 2 or 4 cards per sheet.
 - Japanese / English display switching (member names you enter are shown as-is)
 - Dark mode / light mode switching
 - If you try to leave a screen (Time Settings, Table Settings, or Score Entry) with unsaved changes, a dialog offers three choices: "Save & Move", "Discard & Move", and "Cancel" (choosing "Discard & Move" discards the unsaved changes).
@@ -60,6 +61,8 @@ Matchups are decided mechanically: the same members and the same number of games
 - Sitting at the same table three times in a row (a sit-out in between breaks the streak; this is relaxed only when it cannot be avoided, such as when there is only one table)
 
 Recreating the matchups erases any results already entered.
+
+After creating the matchups, use 'Print Table Cards' and choose how many cards go on each sheet. Cut the sheet apart and hand one card to each participant.
 
 ### 6. Enter scores
 

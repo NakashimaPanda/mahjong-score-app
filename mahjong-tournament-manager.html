@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Mahjong Tournament Manager Version 1.1.0 / © 2026 NakashimaPanda -->
+<!-- Mahjong Tournament Manager Version 1.2.0 / © 2026 NakashimaPanda -->
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -218,6 +218,40 @@ body[data-theme="dark"] #view-time .time-summary{background:#052e16}
 .unsaved-actions #btnUnsavedDiscard{grid-column:2;grid-row:1}
 .unsaved-actions #btnUnsavedCancel{grid-column:2;grid-row:2;justify-self:end}
 body[data-theme="dark"] .unsaved-box{background:#1e293b;color:#e2e8f0}
+/* --- 卓情報カード印刷 --- */
+.print-options{display:flex;flex-direction:column;gap:10px;margin:0 0 18px}
+.print-options label{display:flex;align-items:center;gap:10px;font-size:16px;font-weight:700;margin:0;cursor:pointer}
+.print-options input[type=radio]{width:auto;accent-color:#16a34a}
+.print-actions{display:flex;gap:8px;justify-content:flex-end}
+.print-actions .btn{margin:0}
+#printContainer{display:none}
+.print-sheet{background:#fff;color:#000}
+.print-band{display:flex;flex-direction:column}
+.print-name{font-weight:800;line-height:1.25;border-bottom:2.5px solid #000;padding-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.print-strip{display:flex;flex-direction:row;border:1.8px solid #000;margin-top:8px}
+.print-cell{flex:1 1 0;min-width:0;border-right:1.2px solid #000;padding:5px 2px 6px;text-align:center;display:flex;flex-direction:column;justify-content:space-between;gap:2px}
+.print-cell:last-child{border-right:none}
+.print-cell .pc-top{font-weight:700;white-space:nowrap}
+.print-cell .pc-mid{font-weight:800;white-space:nowrap}
+.print-cell .pc-time{font-variant-numeric:tabular-nums;white-space:nowrap}
+.print-cell.rest .pc-mid{color:#444}
+.print-memo{flex:1 1 auto;min-height:20mm;margin-top:6px;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent calc(9mm - 1px),#999 calc(9mm - 1px),#999 9mm)}
+@page{size:A4 portrait;margin:12mm}
+@media print{
+  body{background:#fff!important;color:#000!important}
+  header,nav,main,footer,#btnBackToTop,#unsavedDialog,#printDialog,#scoreToast{display:none!important}
+  #printContainer{display:block!important}
+  .print-sheet{height:272mm;display:flex;flex-direction:column;page-break-after:always;break-after:page}
+  .print-sheet:last-child{page-break-after:auto;break-after:auto}
+  .print-band{flex:1 1 0;min-height:0;padding:6mm 2mm 4mm;position:relative}
+  .print-band+.print-band{border-top:1.5px dashed #000}
+  .print-band+.print-band::before{content:'✂';position:absolute;top:-9px;left:0;font-size:12px;background:#fff;padding:0 4px;line-height:1}
+  .print-band-empty{visibility:hidden}
+  .print-sheet.per-1 .print-name{font-size:30pt}.print-sheet.per-1 .pc-top{font-size:13pt}.print-sheet.per-1 .pc-mid{font-size:22pt}.print-sheet.per-1 .pc-time{font-size:12pt}
+  .print-sheet.per-2 .print-name{font-size:24pt}.print-sheet.per-2 .pc-top{font-size:11pt}.print-sheet.per-2 .pc-mid{font-size:18pt}.print-sheet.per-2 .pc-time{font-size:10.5pt}
+  .print-sheet.per-4 .print-name{font-size:19pt}.print-sheet.per-4 .pc-top{font-size:9.5pt}.print-sheet.per-4 .pc-mid{font-size:14.5pt}.print-sheet.per-4 .pc-time{font-size:9pt}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
 </style>
 </head>
 <body>
@@ -237,6 +271,7 @@ body[data-theme="dark"] .unsaved-box{background:#1e293b;color:#e2e8f0}
     <div id="mainSummary" class="kv" data-i18n="mainSummaryDefault">メンバー登録・時間設定をしてから「組み合わせ作成」を押してください。</div>
     <div style="margin-top:10px">
       <button class="btn green" id="btnMakeMatch" data-i18n="btnMakeMatch">組み合わせ作成</button>
+      <button class="btn" id="btnPrintCards" data-i18n="btnPrintCards">卓情報カードを印刷</button>
       <button class="btn lightblue" id="btnCsv" data-i18n="btnCsv">結果をCSVで書き出し</button>
       <button class="btn lightpink" id="btnImportTxtMain" data-i18n="btnImportTxt">テキストから参加者を読み込む</button>
       <button class="btn gray" id="btnGoScore" data-i18n="btnGoScore">点数入力へ</button>
@@ -400,7 +435,9 @@ body[data-theme="dark"] .unsaved-box{background:#1e293b;color:#e2e8f0}
 </main>
 <button type="button" id="btnBackToTop" data-i18n="backToTop" aria-label="Back to top">↑ 先頭に戻る</button>
 <div id="unsavedDialog" class="unsaved-overlay unsaved-dialog modal-overlay" role="dialog" aria-modal="true" aria-labelledby="unsavedDialogMsg" style="display:none"><div class="unsaved-box"><p id="unsavedDialogMsg" data-i18n="unsavedMsg">保存されていない変更があります。</p><div class="unsaved-actions"><button type="button" class="btn green" id="btnUnsavedSave" data-action="save" data-i18n="unsavedSave">保存して移動</button><button type="button" class="btn" id="btnUnsavedDiscard" data-action="discard" data-i18n="unsavedDiscard">変更を破棄して移動</button><button type="button" class="btn gray" id="btnUnsavedCancel" data-action="cancel" data-i18n="unsavedCancel">キャンセル</button></div></div></div>
-<footer data-i18n="footerText">麻雀大会マネージャー ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.1.0</footer>
+<div id="printDialog" class="unsaved-overlay print-dialog" role="dialog" aria-modal="true" aria-labelledby="printDialogTitle" style="display:none"><div class="unsaved-box"><p id="printDialogTitle" data-i18n="printCardsTitle">1枚に印刷する人数</p><div class="print-options" role="radiogroup" aria-labelledby="printDialogTitle"><label><input type="radio" name="printPer" value="1"><span data-i18n="printPer1">1人分</span></label><label><input type="radio" name="printPer" value="2"><span data-i18n="printPer2">2人分</span></label><label><input type="radio" name="printPer" value="4" checked><span data-i18n="printPer4">4人分</span></label></div><div class="print-actions"><button type="button" class="btn green" id="btnPrintDo" data-i18n="btnPrintDo">印刷する</button><button type="button" class="btn gray" id="btnPrintCancel" data-i18n="unsavedCancel">キャンセル</button></div></div></div>
+<div id="printContainer" aria-hidden="true"></div>
+<footer data-i18n="footerText">麻雀大会マネージャー ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.2.0</footer>
 <script>
 'use strict';
 var LS_KEY='mahjong-score-app-v1';
@@ -1755,8 +1792,8 @@ var currentLang='ja'; var currentTheme='light';
 try{var pf=JSON.parse(localStorage.getItem(PREFS_KEY)||'null');if(pf){if(pf.lang)currentLang=pf.lang;if(pf.theme)currentTheme=pf.theme;}}catch(e){}
 function savePrefs(){try{localStorage.setItem(PREFS_KEY,JSON.stringify({lang:currentLang,theme:currentTheme}));}catch(e){}}
 var STR={
-ja:{docTitle:'麻雀大会マネージャー',appTitle:'🀄 麻雀大会マネージャー',langLabel:'言語',themeDark:'🌙 ダークモード',themeLight:'☀️ ライトモード',navScore:'点数入力',navMembers:'メンバー登録',navTime:'時間設定',navTableset:'卓設定',navMain:'成績表（メイン）',mainTitle:'成績表',mainSummaryDefault:'メンバー登録・時間設定をしてから「組み合わせ作成」を押してください。',btnMakeMatch:'組み合わせ作成',btnCsv:'結果をCSVで書き出し',btnImportTxt:'テキストから参加者を読み込む',membersDropNote:'テキストファイル（.txt、1人1行）をこの画面にドラッグ＆ドロップすると、参加者を新規登録できます（現在の参加者はすべて置き換わります。ボタンからの読み込みは追加です）。',btnGoScore:'点数入力へ',scheduleTitle:'対戦表・スケジュール',dataTitle:'データについて',btnReset:'全データを削除',scoreTitle:'点数入力',labelRound:'半荘',labelTable:'卓',btnSave:'保存してメイン画面に戻る',btnCheckMembers:'登録内容を確認してメイン画面に戻る',btnAutoRank:'順位を自動判定に戻す',btnBack:'メイン画面に戻る',membersTitle:'メンバー登録',btnAddMember:'＋ メンバーを追加',timeTitle:'時間設定',labelDate:'開催日',labelStart:'開始時刻',labelEnd:'終了時刻',labelModeCount:'半荘数',labelModeEnd:'終了時刻',segByCount:'半荘数で決める',segByEnd:'終了時刻で決める',labelInterval:'インターバル（分）',labelHanchanMin:'1半荘の時間（分）※運営上の目安',labelHasLunch:'お昼休憩を入れる',labelLunchTarget:'お昼休憩の開始目安時刻',labelLunchMin:'お昼休憩の時間（分）',lunchDragHint:'お昼休憩のタイルはドラッグで位置を変えられます',tablesetTitle:'卓設定',labelRoundMode:'100点の扱い',roundGosha:'5捨6入',roundTrunc:'プラス切り捨てマイナス切り上げ',roundNone:'素点そのまま',labelStartPoints:'最初の持ち点',labelReturnPoints:'返し点',labelUmaLow:'ウマ（小）※2位・3位分',labelUmaHigh:'ウマ（大）※1位・4位分',footerText:'麻雀大会マネージャー ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.1.0',backToTop:'↑ 先頭に戻る',namePh:'名前',delTitle:'削除',unsavedMsg:'保存されていない変更があります。',unsavedSave:'保存して移動',unsavedDiscard:'変更を破棄して移動',unsavedCancel:'キャンセル'},
-en:{docTitle:'Mahjong Tournament Manager',appTitle:'🀄 Mahjong Tournament Manager',langLabel:'Language',themeDark:'🌙 Dark Mode',themeLight:'☀️ Light Mode',navScore:'Score Entry',navMembers:'Members',navTime:'Time Settings',navTableset:'Table Settings',navMain:'Standings (Main)',mainTitle:'Standings',mainSummaryDefault:'Register members and set the time, then press "Create Matchups".',btnMakeMatch:'Create Matchups',btnCsv:'Export Results as CSV',btnImportTxt:'Import Participants from Text File',membersDropNote:'You can also drag & drop a text file (.txt, one name per line) onto this screen to register participants as new (all current participants will be replaced; importing via the button adds instead).',btnGoScore:'Go to Score Entry',scheduleTitle:'Matchups & Schedule',dataTitle:'About Your Data',btnReset:'Delete All Data',scoreTitle:'Score Entry',labelRound:'Game',labelTable:'Table',btnSave:'Save & Back to Main',btnCheckMembers:'Check Members & Back to Main',btnAutoRank:'Reset Ranks to Auto',btnBack:'Back to Main',membersTitle:'Members',btnAddMember:'+ Add Member',timeTitle:'Time Settings',labelDate:'Date',labelStart:'Start Time',labelEnd:'End Time',labelModeCount:'Number of Games',labelModeEnd:'End Time',segByCount:'By number of games',segByEnd:'By end time',labelInterval:'Interval (min)',labelHanchanMin:'Minutes per Game (guide)',labelHasLunch:'Include lunch break',labelLunchTarget:'Lunch start target time',labelLunchMin:'Lunch duration (min)',lunchDragHint:'Drag the lunch break tile to change its position.',tablesetTitle:'Table Settings',labelRoundMode:'Handling of 100 Points',roundGosha:'5 down / 6 up',roundTrunc:'Down if plus, up if minus',roundNone:'Keep raw scores as-is',labelStartPoints:'Starting Points',labelReturnPoints:'Return Points',labelUmaLow:'Uma (small) * for 2nd / 3rd',labelUmaHigh:'Uma (large) * for 1st / 4th',footerText:'Mahjong Tournament Manager / Data is saved in this browser / © 2026 NakashimaPanda / Version 1.1.0',backToTop:'↑ Back to Top',namePh:'Name',delTitle:'Delete',unsavedMsg:'You have unsaved changes.',unsavedSave:'Save & Move',unsavedDiscard:'Discard & Move',unsavedCancel:'Cancel'}
+ja:{docTitle:'麻雀大会マネージャー',appTitle:'🀄 麻雀大会マネージャー',langLabel:'言語',themeDark:'🌙 ダークモード',themeLight:'☀️ ライトモード',navScore:'点数入力',navMembers:'メンバー登録',navTime:'時間設定',navTableset:'卓設定',navMain:'成績表（メイン）',mainTitle:'成績表',mainSummaryDefault:'メンバー登録・時間設定をしてから「組み合わせ作成」を押してください。',btnMakeMatch:'組み合わせ作成',btnPrintCards:'卓情報カードを印刷',printCardsTitle:'1枚に印刷する人数',printPer1:'1人分',printPer2:'2人分',printPer4:'4人分',btnPrintDo:'印刷する',printNeedMatchups:'先に組み合わせを作成してください。',btnCsv:'結果をCSVで書き出し',btnImportTxt:'テキストから参加者を読み込む',membersDropNote:'テキストファイル（.txt、1人1行）をこの画面にドラッグ＆ドロップすると、参加者を新規登録できます（現在の参加者はすべて置き換わります。ボタンからの読み込みは追加です）。',btnGoScore:'点数入力へ',scheduleTitle:'対戦表・スケジュール',dataTitle:'データについて',btnReset:'全データを削除',scoreTitle:'点数入力',labelRound:'半荘',labelTable:'卓',btnSave:'保存してメイン画面に戻る',btnCheckMembers:'登録内容を確認してメイン画面に戻る',btnAutoRank:'順位を自動判定に戻す',btnBack:'メイン画面に戻る',membersTitle:'メンバー登録',btnAddMember:'＋ メンバーを追加',timeTitle:'時間設定',labelDate:'開催日',labelStart:'開始時刻',labelEnd:'終了時刻',labelModeCount:'半荘数',labelModeEnd:'終了時刻',segByCount:'半荘数で決める',segByEnd:'終了時刻で決める',labelInterval:'インターバル（分）',labelHanchanMin:'1半荘の時間（分）※運営上の目安',labelHasLunch:'お昼休憩を入れる',labelLunchTarget:'お昼休憩の開始目安時刻',labelLunchMin:'お昼休憩の時間（分）',lunchDragHint:'お昼休憩のタイルはドラッグで位置を変えられます',tablesetTitle:'卓設定',labelRoundMode:'100点の扱い',roundGosha:'5捨6入',roundTrunc:'プラス切り捨てマイナス切り上げ',roundNone:'素点そのまま',labelStartPoints:'最初の持ち点',labelReturnPoints:'返し点',labelUmaLow:'ウマ（小）※2位・3位分',labelUmaHigh:'ウマ（大）※1位・4位分',footerText:'麻雀大会マネージャー ／ データはこの端末のブラウザに保存されます ／ © 2026 NakashimaPanda ／ Version 1.2.0',backToTop:'↑ 先頭に戻る',namePh:'名前',delTitle:'削除',unsavedMsg:'保存されていない変更があります。',unsavedSave:'保存して移動',unsavedDiscard:'変更を破棄して移動',unsavedCancel:'キャンセル'},
+en:{docTitle:'Mahjong Tournament Manager',appTitle:'🀄 Mahjong Tournament Manager',langLabel:'Language',themeDark:'🌙 Dark Mode',themeLight:'☀️ Light Mode',navScore:'Score Entry',navMembers:'Members',navTime:'Time Settings',navTableset:'Table Settings',navMain:'Standings (Main)',mainTitle:'Standings',mainSummaryDefault:'Register members and set the time, then press "Create Matchups".',btnMakeMatch:'Create Matchups',btnPrintCards:'Print Table Cards',printCardsTitle:'Cards per sheet',printPer1:'1 per sheet',printPer2:'2 per sheet',printPer4:'4 per sheet',btnPrintDo:'Print',printNeedMatchups:'Please create the matchups first.',btnCsv:'Export Results as CSV',btnImportTxt:'Import Participants from Text File',membersDropNote:'You can also drag & drop a text file (.txt, one name per line) onto this screen to register participants as new (all current participants will be replaced; importing via the button adds instead).',btnGoScore:'Go to Score Entry',scheduleTitle:'Matchups & Schedule',dataTitle:'About Your Data',btnReset:'Delete All Data',scoreTitle:'Score Entry',labelRound:'Game',labelTable:'Table',btnSave:'Save & Back to Main',btnCheckMembers:'Check Members & Back to Main',btnAutoRank:'Reset Ranks to Auto',btnBack:'Back to Main',membersTitle:'Members',btnAddMember:'+ Add Member',timeTitle:'Time Settings',labelDate:'Date',labelStart:'Start Time',labelEnd:'End Time',labelModeCount:'Number of Games',labelModeEnd:'End Time',segByCount:'By number of games',segByEnd:'By end time',labelInterval:'Interval (min)',labelHanchanMin:'Minutes per Game (guide)',labelHasLunch:'Include lunch break',labelLunchTarget:'Lunch start target time',labelLunchMin:'Lunch duration (min)',lunchDragHint:'Drag the lunch break tile to change its position.',tablesetTitle:'Table Settings',labelRoundMode:'Handling of 100 Points',roundGosha:'5 down / 6 up',roundTrunc:'Down if plus, up if minus',roundNone:'Keep raw scores as-is',labelStartPoints:'Starting Points',labelReturnPoints:'Return Points',labelUmaLow:'Uma (small) * for 2nd / 3rd',labelUmaHigh:'Uma (large) * for 1st / 4th',footerText:'Mahjong Tournament Manager / Data is saved in this browser / © 2026 NakashimaPanda / Version 1.2.0',backToTop:'↑ Back to Top',namePh:'Name',delTitle:'Delete',unsavedMsg:'You have unsaved changes.',unsavedSave:'Save & Move',unsavedDiscard:'Discard & Move',unsavedCancel:'Cancel'}
 };
 var STR_LONG={
 ja:{mainNote:'・セルの色は卓を表します（同じ半荘で同じ色＝同じ卓）。\n・セルにはウマ・オカ込みの最終点数を表示し、その下に順位と素点を表示します。\n・休み番はグレーで「休」です。\n・成績表のセルをクリックすると、その半荘・卓のメンバー詳細へ移動します。\n・対戦表の各卓の行をクリックすると、その卓の点数入力画面へ移動し、入力済みの場合はそのデータが反映されます。\n・上部の「点数入力」ボタンとメイン画面の「点数入力へ」ボタンからは、初期状態（先頭の半荘・先頭の卓、素点欄は空）で開きます。\n・「合計」または「順位」の見出しをクリックすると順位順（1位が上）に並び替え、もう一度クリックすると元の登録順に戻ります。',dataNote:'データはこの端末のブラウザ内（localStorage）に自動保存されます。ブラウザのサイトデータを消去すると消えるため、節目にCSVで書き出して保管してください。書き出しはCSVのみです。',scoreNote:'・素点はキーボードでのみ入力できます（スピナーやマウスホイールでは変わりません）。\n・「25300」でも「25.3」でも入力でき、どちらも 25300 として扱います。\n・素点を入れて Enter または Tab を押すと、次の人の素点欄へカーソルが移動します（カーソル移動は素点欄の間だけです）。\n・場風は上から東・南・西・北で固定です。\n・座る場風を変えるときは、名前をつまんで（ドラッグして）移動したい場風の行へ重ねて離してください（名前欄にフォーカスがあるときは上下キーでも移動できます）。\n・入力済みの素点・順位は名前と一緒にその人について移動します。\n・入力欄に薄く表示される「0」は未入力の目安で、まだ入力したことにはなりません。\n・3人分が入ると、4人目は「持ち点×4 − 3人の合計」で自動入力されます（自動入力された値も手で直せます）。\n・同点のときは東に近い順に上位になります。\n・4人分の素点がそろって順位が確定すると、各行にウマ・合計（最終点数）・順位が表示されます（順位はその後に手で変更できます）。\n・4人分の合計が持ち点×4にならないときは、画面下に通知が出て数秒で消えます（保存時にも確認が出ます）。',membersNote:'・参加者の名前を入れてください。\n・名前は入力した時点で自動保存されます。保存操作は不要で、画面を移動しても入力内容は残ります。\n・名前を入れて Enter または Tab を押すと、次の名前欄へ移動します（最後の欄で Enter すると新しい欄が追加されます）。',timeNote:'半荘と半荘の間にはインターバルが入ります（お昼休憩が入る区切りでは、お昼休憩がインターバルを兼ねます）。終了時刻か半荘数のどちらかで決められます。入力エリアからフォーカスが外れると、もう一方が計算されて表示され、決まったお昼休憩の開始時刻が目安欄に入ります。お昼休憩は、開始目安時刻に最も近い半荘の区切りから、設定した時間だけ入れます。半荘の時間は目安なので、当日の進行が多少ずれてもかまいません。',tablesetNote:'・計算式：最終点数 ＝（素点 − 返し点）÷ 1000 ＋ ウマ ＋（1位のみオカ）。\n・ウマは 1位＋大、2位＋小、3位−小、4位−大 です。\n・例えばウマ 5・10 なら小＝5、大＝10 と入れてください。\n・飛び・焼き鳥は扱いません（素点基準）。\n・「100点の扱い」は（素点 − 返し点）÷ 1000 で出る100点単位の端数の処理です。\n・5捨6入は端数の絶対値が5以下なら捨て、6以上なら入れます。\n・プラス切り捨てマイナス切り上げは、プラスは端数を捨て、マイナスは端数を上げて、いずれも0に近い整数にします。\n・素点そのままは端数を小数第1位までそのまま使います。\n・丸める方式では、2位〜4位を先に丸め、1位がその誤差を受け取るため、4人の最終点数の合計は必ず0になります。'},
@@ -1973,6 +2010,76 @@ function handleParticipantFile(file,options){
     for(var i=0;i<files.length;i++){if(/\.txt$/i.test(files[i].name||'')||files[i].type==='text/plain'){target=files[i];break;}}
     if(!target){alert(currentLang==='en'?'Please drop a .txt file (one name per line).':'*.txt ファイル（1人1行）をドロップしてください。');return;}
     handleParticipantFile(target,{replace:true});
+  });
+})();
+</script>
+<script>
+'use strict';
+// ---- 卓情報カード印刷（v1.2.0） ----
+var printDialogOpen=false;
+function printTableLetter(i){return TABLE_NAMES[i]||String(i+1);}
+function printGameLabel(n){return currentLang==='en'?('Game '+n):(n+'回戦');}
+function printTableText(i){return currentLang==='en'?('Table '+printTableLetter(i)):(printTableLetter(i)+'卓');}
+function openPrintDialog(){
+  if(!state.matchups||!state.matchups.length){alert(t('printNeedMatchups'));return;}
+  if(printDialogOpen)return;
+  printDialogOpen=true;
+  var dlg=document.getElementById('printDialog'); if(dlg){dlg.classList.add('show');dlg.style.display='flex';}
+}
+function closePrintDialog(){
+  if(!printDialogOpen)return;
+  printDialogOpen=false;
+  var dlg=document.getElementById('printDialog'); if(dlg){dlg.classList.remove('show');dlg.style.display='none';}
+}
+function buildPrintCards(perSheet){
+  var mem=validMembers();
+  if(!state.schedule||!state.schedule.length){state.schedule=buildSchedule();}
+  var slots=(state.schedule&&state.schedule.length)?state.schedule.slice():state.matchups.map(function(mu,i){return {index:i+1,start:''};});
+  var games=hanchanSlots();
+  var html='';
+  for(var s0=0;s0<mem.length;s0+=perSheet){
+    var chunk=mem.slice(s0,s0+perSheet);
+    html+='<div class="print-sheet per-'+perSheet+'">';
+    chunk.forEach(function(m){
+      html+='<div class="print-band">';
+      html+='<div class="print-name">'+esc(m.name)+'</div>';
+      html+='<div class="print-strip">';
+      var gi=0;
+      slots.forEach(function(slot){
+        if(slot.lunch){
+          html+='<div class="print-cell lunch"><div class="pc-top"></div><div class="pc-mid">'+(currentLang==='en'?'Lunch':'休憩')+'</div><div class="pc-time">'+esc(slot.start)+(currentLang==='en'?' - ':'〜')+esc(slot.end)+'</div></div>';
+        }else{
+          var r=gi; gi++;
+          var mu=state.matchups[r]; var ti=-1;
+          if(mu&&mu.tables){mu.tables.forEach(function(players,tIdx){if(players.indexOf(m.id)>=0)ti=tIdx;});}
+          var start=(games[r]&&games[r].start)?games[r].start:(slot.start||'');
+          var mid=ti>=0?printTableText(ti):(currentLang==='en'?'Rest':'休み');
+          html+='<div class="print-cell'+(ti<0?' rest':'')+'"><div class="pc-top">'+printGameLabel(r+1)+'</div><div class="pc-mid">'+mid+'</div><div class="pc-time">'+esc(start)+'</div></div>';
+        }
+      });
+      html+='</div><div class="print-memo"></div></div>';
+    });
+    for(var f=chunk.length;f<perSheet;f++){html+='<div class="print-band print-band-empty"></div>';}
+    html+='</div>';
+  }
+  var c=document.getElementById('printContainer'); if(!c)return false;
+  c.innerHTML=html;
+  return true;
+}
+(function(){
+  var btn=document.getElementById('btnPrintCards'); if(btn)btn.addEventListener('click',openPrintDialog);
+  var cancel=document.getElementById('btnPrintCancel'); if(cancel)cancel.addEventListener('click',closePrintDialog);
+  var dlg=document.getElementById('printDialog');
+  if(dlg)dlg.addEventListener('click',function(e){if(e.target===dlg)closePrintDialog();});
+  document.addEventListener('keydown',function(e){if(printDialogOpen&&(e.key==='Escape'||e.key==='Esc'))closePrintDialog();});
+  var doBtn=document.getElementById('btnPrintDo');
+  if(doBtn)doBtn.addEventListener('click',function(){
+    var sel=document.querySelector('input[name="printPer"]:checked');
+    var per=sel?parseInt(sel.value,10):4;
+    if(per!==1&&per!==2&&per!==4)per=4;
+    if(!buildPrintCards(per))return;
+    closePrintDialog();
+    setTimeout(function(){window.print();},30);
   });
 })();
 </script>
